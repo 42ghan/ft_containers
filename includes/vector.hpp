@@ -16,7 +16,8 @@ namespace ft {
 template <typename T, typename Alloc = std::allocator<T> >
 class VectorBase {
  protected:
-  typedef _T value_type;
+  // type definitions
+  typedef T value_type;
   typedef value_type& reference;
   typedef const value_type& const_reference;
   typedef typename _alloc_traits::difference_type difference_type;
@@ -25,10 +26,17 @@ class VectorBase {
   typedef pointer iterator;
   typedef const_pointer const_iterator;
 
-  pointer begin_;         // start of alloc
-  pointer end_;           // end of sequence
-  pointer last_;          // end of alloc
-  allocator_type alloc_;  // allocator
+  pointer begin_;           // start of alloc
+  pointer end_;             // end of sequence
+  pointer end_of_storage_;  // end of alloc
+  allocator_type alloc_;    // allocator
+
+ private:
+  void InitPointers_(const size_type n) {
+    begin_ = alloc_.allocate(n);
+    end_ = begin_;
+    end_of_storage_ = begin_ + n;
+  }
 
  public:
   typedef Alloc allocator_type;
@@ -36,52 +44,68 @@ class VectorBase {
   typedef typename _alloc_traits::size_type size_type;
 
   explicit VectorBase(const allocator_type& alloc = allocator_type())
-      : begin_(new value_type[0]), end_(begin_), last_(begin_), alloc_(alloc) {}
+      : alloc_(alloc) {
+    InitPointers_(0);
+  }
 
-  explicit VectorBase(size_type n, const value_type& val = value_type(),
+  explicit VectorBase(const size_type n,
                       const allocator_type& alloc = allocator_type())
-      : begin_(new value_type[n]),
-        end_(begin_ + n),
-        last_(end_),
-        alloc_(alloc) {}
+      : alloc_(alloc) {
+    InitPointers_(n);
+  }
 
   virtual ~VectorBase(void) { delete begin_; }
-}
+};
 
 template <typename T, typename Alloc = std::allocator<T> >
-class vector {
+class vector : private VectorBase<T, Alloc> {
  private:
-  typedef vector_base_<T, Alloc> base_;
-  typedef allocator<T> default_allocator_type_;
+  typedef VectorBase<T, Alloc> Base_;
+  Base_ base_;
+
+  template <typename InputIterator>
+  InitCopyRange_(InputIterator first, InputIterator last) {
+    for (; first != last; first++)
+      ;
+  }
 
  public:
   // SECTION : member types
   typedef T value_type;
   typedef Alloc allocator_type;
   typedef typename allocator_traits<allocator_type> alloc_traits;
-  typedef std::size_t size_type;
-  typedef std::ptrdiff_t difference_type;
-  typedef value_type& reference;
-  typedef const value_type& const_reference;
-  typedef Alloc::pointer pointer;
-  typedef Alloc::const_pointer const_pointer;
-  typedef typename alloc_traits<allocator_type>::pointer iterator;
-  typedef typename alloc_traits<allocator_type>::const_pointer const_iterator
-      // typedef  reverse_iterator
-      // typedef  const_reverse_iterator
-      typedef ptrdiff_t difference_type;
-  typedef size_t size_type;
+  typedef typename Base_::size_type size_type;
+  typedef typename Base_::difference_type difference_type;
+  typedef typename Base_::reference reference;
+  typedef typename Base_::const_reference const_reference;
+  typedef typename Base_::pointer pointer;
+  typedef typename Base_::const_pointer const_pointer;
+  typedef typename Base_::pointer iterator;
+  typedef typename Base_::const_pointer const_iterator;
+  // typedef  reverse_iterator
+  // typedef  const_reverse_iterator
 
   // SECTION : constructors & destructor
   // #1 default : empty container constructor (no elem)
-  vector(const allocator_type& alloc = allocator_type()) {}
+  explicit vector(const allocator_type& alloc = allocator_type())
+      : base_(alloc) {}
+
   // #2 fill : construct a container with n elements, fill them with val
-  vector(size_type n, const value_type& val,
-         const allocator_type& alloc = allocator_type()) {}
+  explicit vector(size_type n, const value_type& val,
+                  const allocator_type& alloc = allocator_type())
+      : base_(n, alloc) {
+    end_ = std::uninitialized_fill_n<iterator, size_type, value_type>(begin_, n,
+                                                                      val);
+  }
+
   // #3 range :
   template <typename InputIterator>
   vector(InputIterator first, InputIterator last,
-         const allocator_type& alloc = allocator_type()) {}
+         const allocator_type& alloc = allocator_type())
+      : base_(alloc) {
+    // gcc uses push_back
+  }
+
   // #4 copy constructor (keeps and uses a copy of x's alloc)
   vector(const vector& x) {}
   // destructor

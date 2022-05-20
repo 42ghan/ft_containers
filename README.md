@@ -45,6 +45,9 @@ There are two types of containers, sequence containers and assiciative container
 
 - Containers manage storage space for their elements by utilizing [`std::allocator`](https://cplusplus.com/reference/memory/allocator/) objects to dynamically allocates and deallocate memory.
 - `std::allocator` is stateless. ("all instances of the given allocator are interchangeable, compare equal and can deallocate memory allocated by any other instance of the same allocator type.")
+- Why use `std::allocator` instead of using `new` and `delete` directly?
+  - By using `std::allocator` allocation and construction, and deallocation and destruction can be performed separately.
+  - [StackOverflow discussion](https://stackoverflow.com/questions/31358804/whats-the-advantage-of-using-stdallocator-instead-of-new-in-c#:~:text=new%20and%20delete%20are%20the,then%20finally%20deallocate%20the%20memory.)
 
 ### Iterators
 
