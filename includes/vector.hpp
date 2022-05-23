@@ -8,6 +8,10 @@
 #ifndef FT_CONTAINERS_INCLUDES_VECTOR_HPP_
 #define FT_CONTAINERS_INCLUDES_VECTOR_HPP_
 
+#include <algorithm>
+#include <exception>
+#include <iterator_traits.hpp>
+#include <limits>
 #include <memory>
 #include <vector>
 
@@ -18,13 +22,7 @@ class VectorBase {
  protected:
   // type definitions
   typedef T value_type;
-  typedef value_type& reference;
-  typedef const value_type& const_reference;
-  typedef typename _alloc_traits::difference_type difference_type;
   typedef typename _alloc_traits::pointer pointer;
-  typedef typename _alloc_traits::const_pointer const_pointer;
-  typedef pointer iterator;
-  typedef const_pointer const_iterator;
 
   pointer begin_;           // start of alloc
   pointer end_;             // end of sequence
@@ -40,8 +38,6 @@ class VectorBase {
 
  public:
   typedef Alloc allocator_type;
-  typedef allocator_traits<allocator_type> _alloc_traits;
-  typedef typename _alloc_traits::size_type size_type;
 
   explicit VectorBase(const allocator_type& alloc = allocator_type())
       : alloc_(alloc) {
@@ -54,8 +50,18 @@ class VectorBase {
     InitPointers_(n);
   }
 
-  virtual ~VectorBase(void) { delete begin_; }
+  virtual ~VectorBase(void) {
+    alloc_.deallocate(begin_, end_of_storage_ - begin_);
+  }
 };
+
+template <typename T>
+void swap(VectorBase<T>& a, VectorBase<T>& b) {
+  swap(a.alloc_, b.alloc_);
+  swap(a.begin_, b.begin_);
+  swap(a.end_, b.end_);
+  swap(a.end_of_storage_, b.end_of_storage_);
+}
 
 template <typename T, typename Alloc = std::allocator<T> >
 class vector : private VectorBase<T, Alloc> {
@@ -63,27 +69,28 @@ class vector : private VectorBase<T, Alloc> {
   typedef VectorBase<T, Alloc> Base_;
   Base_ base_;
 
-  template <typename InputIterator>
-  InitCopyRange_(InputIterator first, InputIterator last) {
-    for (; first != last; first++)
-      ;
-  }
+  // FIXME : Unnecessary...?
+  // template <typename InputIterator>
+  // InitCopyRange_(InputIterator first, InputIterator last) {
+  //   for (; first != last; first++)
+  //     ;
+  // }
 
  public:
   // SECTION : member types
   typedef T value_type;
-  typedef Alloc allocator_type;
+  typedef typename Base_::allocator_type allocator_type;
   typedef typename allocator_traits<allocator_type> alloc_traits;
-  typedef typename Base_::size_type size_type;
-  typedef typename Base_::difference_type difference_type;
-  typedef typename Base_::reference reference;
-  typedef typename Base_::const_reference const_reference;
+  typedef size_t size_type;
+  typedef ptrdiff_t difference_type;
+  typedef typename alloc_traits::reference reference;
+  typedef typename alloc_traits::const_reference const_reference;
   typedef typename Base_::pointer pointer;
-  typedef typename Base_::const_pointer const_pointer;
-  typedef typename Base_::pointer iterator;
-  typedef typename Base_::const_pointer const_iterator;
-  // typedef  reverse_iterator
-  // typedef  const_reverse_iterator
+  typedef typename alloc_traits::const_pointer const_pointer;
+  typedef pointer iterator;              // FIXME
+  typedef const_pointer const_iterator;  // FIXME
+  typedef std::reverse_iterator<iterator> reverse_iterator;
+  typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 
   // SECTION : constructors & destructor
   // #1 default : empty container constructor (no elem)
@@ -103,37 +110,86 @@ class vector : private VectorBase<T, Alloc> {
   vector(InputIterator first, InputIterator last,
          const allocator_type& alloc = allocator_type())
       : base_(alloc) {
-    // gcc uses push_back
+    // FIXME : gcc uses push_back
   }
 
   // #4 copy constructor (keeps and uses a copy of x's alloc)
-  vector(const vector& x) {}
+  vector(const vector& x) : base_(x.size(), x.alloc_) {
+    uninitialized_copy(x.begin(), x.end(), begin_);
+  }
+
   // destructor
-  ~vector(void) {}
+  ~vector(void)  // NON-THROWING
+  {
+    for (iterator itr = begin(); itr != end(); itr++) alloc_.destroy(itr);
+  }
 
   // SECTION : operator=
   // preserves the current allocator
-  vector& operator=(const vector& x) {}
+  vector& operator=(const vector& x) {
+    vector temp(a);
+    swap<T>(*this, temp);
+    return *this;
+  }
 
   // SECTION : iterators
-  iterator begin(void) {}
+  iterator begin(void)  // NON-THROWING
+  {
+    return iterator(begin_);
+  }
 
-  const_iterator begin(void) const {}
+  const_iterator begin(void) const  // NON-THROWING
+  {
+    return const_cast<const_pointer> begin_;
+  }
 
-  reverse_iterator rbegin(void) {}
+  reverse_iterator rbegin(void)  // NON-THROWING
+  {}
 
-  const_reverse_iterator rbegin(void) const {}
+  const_reverse_iterator rbegin(void) const  // NON-THROWING
+  {}
+
+  iterator end(void)  // NON-THROWING
+  {
+    return end_;
+  }
+
+  const_iterator end(void) const  // NON-THROWING
+  {
+    return const_cast<const_pointer> end_;
+  }
+
+  reverse_iterator rend(void)  // NON-THROWING
+  {}
+
+  const_reverse_iterator rend(void) const  // NON-THROWING
+  {}
 
   // SECTION : capacity
-  size_type size(void) const {}
+  size_type size(void) const  // NON-THROWING
+  {
+    return size_type(end_ - begin_);
+  }
 
-  size_type max_size(void) const {}
+  size_type max_size(void) const  // NON-THROWING
+  {
+    const size_type diff_max =
+        std::numeric_limits<ptrdiff_t>::max() / sizeof(value_type);
+    const size_type alloc_max = alloc_traits::max_size(alloc_);
+    return std::min(diff_max, alloc_max);
+  }
 
   void resize(size_type n, value_type val = value_type()) {}
 
-  size_type capacity(void) const {}
+  size_type capacity(void) const  // NON-THROWING
+  {
+    return size_type(end_of_storage_ - begin_);
+  }
 
-  bool empty(void) const {}
+  bool empty(void) const  // NON-THROWING
+  {
+    return begin() == end();
+  }
 
   void reserve(size_type n) {}
 

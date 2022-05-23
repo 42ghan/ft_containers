@@ -9,6 +9,7 @@ DIY C++ containers implementation (C++98)
 - [STL Containers](#stl-containers)
 - [Background Information](#background-information)
   - [Allocator](#allocator)
+  - [`noexcept`/`throw()`](#noexceptthrow)
   - [Iterators](#iterators)
     - [`iterator_traits`](#iterator-traits)
     - [Categories](#categories)
@@ -48,6 +49,16 @@ There are two types of containers, sequence containers and assiciative container
 - Why use `std::allocator` instead of using `new` and `delete` directly?
   - By using `std::allocator` allocation and construction, and deallocation and destruction can be performed separately.
   - [StackOverflow discussion](https://stackoverflow.com/questions/31358804/whats-the-advantage-of-using-stdallocator-instead-of-new-in-c#:~:text=new%20and%20delete%20are%20the,then%20finally%20deallocate%20the%20memory.)
+- When deallocating memory space by using `std::allocator::deallocate`, the pointer that is being deallocated must be the one allocated by `std::allocator::allocate`, and the size argument must be equal to the one used by the allocator.
+
+### `noexcept`/`throw()`
+
+- A lot of member functions of STL Containers' declarations are followed by `noexcept` specifier.
+- It is used to let the compiler know that the function will not throw exception.
+- It is used for two main reasons: [(from Modernes C++)](https://www.modernescpp.com/index.php/c-core-guidelines-the-noexcept-specifier-and-operator)
+  - documents the behaviour of the function (which means the function can be safely used in a non-throwing function)
+  - optimises compilation
+- In C++98 standard, only the dynamic exception specification using `throw()` is available instead of `noexcept`. However, since such method does not improve performance (since it works dynamically) like the `noexcept` does, and is not written on C++98 manuals, exception specification will not be applied on this implementation. [(ref. StackOverflow)](https://stackoverflow.com/questions/13841559/deprecated-throw-list-in-c11)
 
 ### Iterators
 
