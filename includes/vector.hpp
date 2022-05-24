@@ -195,21 +195,29 @@ class vector : private VectorBase<T, Alloc> {
   }
 
   // SECTION : element access
-  reference operator[](size_type n) {}
+  reference operator[](size_type n) FT_NOEXCEPT_ { return *(begin_ + n); }
 
-  const_reference operator[](size_type n) const {}
+  const_reference operator[](size_type n) const FT_NOEXCEPT_ {
+    return *(begin_ + n);
+  }
 
-  reference at(size_type n) {}
+  reference at(size_type n) {
+    if (n >= size()) throw std::out_of_range();
+    return (*this)[n];
+  }
 
-  const_reference at(size_type n) const {}
+  const_reference at(size_type n) const {
+    if (n >= size()) throw std::out_of_range();
+    return (*this)[n];
+  }
 
-  reference front(void) {}
+  reference front(void) FT_NOEXCEPT_ { return *begin(); }
 
-  const_reference front(void) const {}
+  const_reference front(void) const FT_NOEXCEPT_ { return *begin(); }
 
-  reference back(void) {}
+  reference back(void) FT_NOEXCEPT_ { return *(end() - 1); }
 
-  const_reference back(void) const {}
+  const_reference back(void) const FT_NOEXCEPT_ { return *(end() - 1); }
 
   // SECTION : modifiers
   // range

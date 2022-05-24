@@ -224,8 +224,8 @@ void reserve(size_type n);
 
   - `vector::resize`
 
-    - n <= size(), no-throw guarantee
-    - n > size() & reallocation, strong guarantee if the type of the elements is either copyable or no-throw moveable
+    - `n` <= `size()`, no-throw guarantee
+    - `n` > `size()` & reallocation, strong guarantee if the type of the elements is either copyable or no-throw moveable
     - else basic guarantee
 
   - `vector::reserve`
@@ -234,6 +234,32 @@ void reserve(size_type n);
     - `std::length_error` is thrown if n is greater than `max_size()`
 
 #### Element Access
+
+```C++
+// Subscript & at
+// returns reference of n-th element of the vector
+reference operator[](size_type n) FT_NOEXCEPT_;
+const_reference operator[](size_type n) const FT_NOEXCEPT_;
+reference at(size_type n);
+const_reference at(size_type n) const;
+
+// front & back
+// front returns the reference of the first element
+// back returns the reference of the last element
+reference front(void) FT_NOEXCEPT_;
+const_reference front(void) const FT_NOEXCEPT_;
+reference back(void) FT_NOEXCEPT_;
+const_reference back(void) const FT_NOEXCEPT_;
+```
+
+- **Exception Safety** :
+  - `operator[]`
+    - non-throwing, if `n` >= `size()`, UB
+  - `at`
+    - strong guarantee
+    - checks whether `n` is in range, if not throws `std::out_of_range`
+  - `front` & `back`
+    - non-throwing, if empty, UB
 
 #### Modifiers
 
