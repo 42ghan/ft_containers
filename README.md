@@ -55,10 +55,11 @@ There are two types of containers, sequence containers and assiciative container
 
 - A lot of member functions of STL Containers' declarations are followed by `noexcept` specifier.
 - It is used to let the compiler know that the function will not throw exception.
+- When an exception is thrown from a **NON-THROWING** function, `std::unexpected` is called, which will terminate the program by calling `std::terminate`.
 - It is used for two main reasons: [(from Modernes C++)](https://www.modernescpp.com/index.php/c-core-guidelines-the-noexcept-specifier-and-operator)
   - documents the behaviour of the function (which means the function can be safely used in a non-throwing function)
   - optimises compilation
-- In C++98 standard, only the dynamic exception specification using `throw()` is available instead of `noexcept`. However, since such method does not improve performance (since it works dynamically) like the `noexcept` does, and is not written on C++98 manuals, exception specification will not be applied on this implementation. [(ref. StackOverflow)](https://stackoverflow.com/questions/13841559/deprecated-throw-list-in-c11)
+- In C++98 standard, only the dynamic exception specification using `throw()` is available instead of `noexcept`. Since such method does not improve performance like the `noexcept` does, a question arises whether `throw()` should be utilized in this implementation [(ref. StackOverflow)](https://stackoverflow.com/questions/13841559/deprecated-throw-list-in-c11). However, `throw()` was used for exiting the program by calling `std::unexpected -> std::terminate` when exception is thrown from a **NON-THROWING** function was deemed more important than slight performance improvement.
 
 ### Iterators
 
@@ -124,8 +125,119 @@ class Safe {
 
 ### Why is there `__vector_base` class?
 
-- In STL Containers `std::vector` implementation, `vector_base` class is used as an [RAII](#raii) (exception-safety technique) wrapper.
+- In STL Containers `std::vector` implementation, `vector_base` class functions as an [RAII](#raii) (exception-safety technique) wrapper.
 - Aquisition of resources occur in the `vector_base` wrapper's instantiation and the resources are released when the wrapper is destroyed (after the instance of the inherited class is destroyed), so the `std::vector` instance can safely access the resources during its lifetime.
+
+### Member Types
+
+```C++
+typedef T value_type;
+typedef typename Alloc allocator_type;
+typedef typename allocator_traits<allocator_type> alloc_traits;
+typedef typename alloc_traits::size_type size_type;
+typedef typename alloc_traits::difference_type difference_type;
+typedef typename alloc_traits:: pointer;
+typedef typename alloc_traits::const_pointer const_pointer;
+typedef typename alloc_traits::reference reference;
+typedef typename alloc_traits::const_reference const_reference;
+typedef pointer iterator;              // FIXME
+typedef const_pointer const_iterator;  // FIXME
+typedef std::reverse_iterator<iterator> reverse_iterator; // FIXME
+typedef std::reverse_iterator<const_iterator> const_reverse_iterator; // FIXME
+```
+
+### Member Functions
+
+#### Constructors & Destructors
+
+```C++
+// Constructors
+// #1 default : empty container constructor (no elem)
+explicit vector(const allocator_type& alloc = allocator_type());
+
+// #2 fill : construct a container with n elements, fill them with val
+explicit vector(size_type n, const value_type& val,
+                const allocator_type& alloc = allocator_type());
+
+// #3 range : construct a container that will contain the same values in the range [first, last)
+template <typename InputIterator>
+vector(InputIterator first, InputIterator last,
+        const allocator_type& alloc = allocator_type());
+
+// #4 copy constructor (keeps and uses a copy of x's alloc)
+vector(const vector& x);
+
+// Destructor
+~vector(void) FT_NOEXCEPT_
+
+```
+
+- **Exception Safety** : strong guarantee for the constructors & non-throwing for the destructor
+
+- **UNDEFINED BEHAVIOUR** in case inappropriate arguments have been passed to `allocator_traits::construct` for the element constructions, or the range specified by [first,last) is not valid.
+
+- `explicit` specifier specifies that the constructors followed by the keyword cannot be used for implicit conversions and copy-initialization.
+
+#### Iterators
+
+```C++
+// Iterators
+iterator begin(void) FT_NOEXCEPT_;
+const_iterator begin(void) const FT_NOEXCEPT_;
+reverse_iterator rbegin(void) FT_NOEXCEPT_;
+const_reverse_iterator rbegin(void) const FT_NOEXCEPT_;
+iterator end(void) FT_NOEXCEPT_;
+const_iterator end(void) const FT_NOEXCEPT_;
+reverse_iterator rend(void) FT_NOEXCEPT_;
+const_reverse_iterator rend(void) const FT_NOEXCEPT_;
+```
+
+- **Exception Safety** : non-throwing
+
+#### Capacity
+
+```C++
+// size : returns a number of elements in the vector
+size_type size(void) const FT_NOEXCEPT_;
+
+// max_size : returns the max number of elements the vector can hold theoretically
+// (depends on the system limit)
+size_type max_size(void) const FT_NOEXCEPT_;
+
+// resize : resizes the container so that it contains n elements
+// If n < size(), elements beyond the first n elements are destroyed.
+// If n > size(), elements(val) are inserted at the end until n == size().
+// If n > capacity(), reallocation takes place.
+void resize(size_type n, value_type val = value_type());
+
+// capacity : returns the size of allocated storage capacity
+size_type capacity(void) const FT_NOEXCEPT_;
+
+// empty : returns whether the vector is empty
+bool empty(void) const FT_NOEXCEPT_;
+
+// reserve : only when n is greater than capacity(), reallocation to increase space capacity to n takes place.
+void reserve(size_type n);
+```
+
+- **Exception Safety** :
+
+  - `vector::resize`
+
+    - n <= size(), no-throw guarantee
+    - n > size() & reallocation, strong guarantee if the type of the elements is either copyable or no-throw moveable
+    - else basic guarantee
+
+  - `vector::reserve`
+    - strong guarantee if no reallocations happens / the elements has either a non-throwing move constructor or a copy constructor
+    - else basic guarantee.
+    - `std::length_error` is thrown if n is greater than `max_size()`
+
+#### Element Access
+
+#### Modifiers
+
+#### `get_allocator`
 
 ## TODO
 
