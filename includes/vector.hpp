@@ -12,6 +12,7 @@
 
 #include <algorithm>
 #include <exception>
+#include <iterator>
 #include <iterator_traits.hpp>
 #include <limits>
 #include <memory>
@@ -124,15 +125,13 @@ class vector : private VectorBase<T, Alloc> {
   }
 
   // destructor
-  ~vector(void) FT_NOEXCEPT_ {
-    for (iterator itr = begin(); itr != end(); itr++) alloc_.destroy(itr);
-  }
+  ~vector(void) FT_NOEXCEPT_ { clear(); }
 
   // SECTION : operator=
   // preserves the current allocator
   vector& operator=(const vector& x) {
-    vector temp(a);
-    swap<T>(*this.base_, temp.base_);
+    vector temp(alloc_);
+    swap<T>(*this, temp);
     return *this;
   }
 
@@ -187,10 +186,10 @@ class vector : private VectorBase<T, Alloc> {
   void reserve(size_type n) {
     if (n > max_size()) throw std::length_error();
     if (n > capacity()) {
-      vector<value_type, allocator_type> temp(n);
+      vector<value_type, allocator_type> temp(n, alloc_);
       temp.end() = std::uninitialized_copy<iterator, iterator, iterator>(
           begin(), end(), temp.begin());
-      swap<value_type>(*this.base_, temp.base_);
+      swap<value_type>(*this, temp);
     }
   }
 
@@ -222,14 +221,45 @@ class vector : private VectorBase<T, Alloc> {
   // SECTION : modifiers
   // range
   template <typename InputIterator>
-  void assign(InputIterator first, InputIterator last) {}
+  void assign(InputIterator first, InputIterator last) {
+    typename iterator_traits<value_type>::difference_type n =
+        std::distance<InputIterator>(first, last);
+    if (distance > capacity()) {
+      vector<value_type, allocator_type> temp(n, alloc_);
+      temp.end() = std::uninitialized_copy<iterator, iterator>(first, last,
+                                                               temp() begin());
+      swap<value_type>(*this, temp);
+    } else {
+      clear();
+      end_ = std::uninitialized_copy<iterator, iterator>(first, last, begin());
+    }
+  }
 
   // fill
-  void assign(size_type n, const value_type& val) {}
+  void assign(size_type n, const value_type& val) {
+    if (n > capacity()) {
+      vector<value_type, allocator_type> temp(n, val, alloc_);
+      swap<value_type>(*this, temp);
+    } else {
+      clear();
+      end_ = std::uninitialized_fill_n<iterator, size_type, value_type>(begin(),
+                                                                        n, val);
+    }
+  }
 
-  void push_back(const value_type& val) {}
+  void push_back(const value_type& val) {
+    if (end_ != end_of_storage_) {
+      alloc_.construct(end_, val);
+      ++end_;
+    } else {
+      // FIXME : gcc reallocs and inserts
+    }
+  }
 
-  void pop_back(void) {}
+  void pop_back(void) {
+    end_--;
+    alloc_.destroy(end_);
+  }
 
   // single element
   iterator insert(iterator position, const value_type& val) {}
@@ -241,13 +271,21 @@ class vector : private VectorBase<T, Alloc> {
   template <typename InputIterator>
   void insert(iterator position, InputIterator first, InputIterator last) {}
 
-  iterator erase(iterator position) {}
+  iterator erase(iterator position) {
+    if (position == end_)
+      pop_back();
+    else {
+      // FIXME
+    }
+  }
 
   iterator erase(iterator first, iterator last) {}
 
   void swap(vector& x) {}
 
-  void clear(void) {}
+  void clear(void) FT_NOEXCEPT_ {
+    for (iterator itr = begin(); itr != end(); itr++) alloc_.destroy(itr);
+  }
 
   // SECTION : get_allocator
   allocator_type get_allocator(void) const {}
