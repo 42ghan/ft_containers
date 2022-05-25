@@ -69,6 +69,12 @@ There are two types of containers, sequence containers and assiciative container
 
 - An iterator is an object that points to some element in a range of elements (e.g. a pointer). By using operators (at least ++ and \*), it can iterate through the elements of that range.
 - Each container type has its specific iterator type.
+- All iterators, regardless of their categories, are at least:
+  - copy-constructible
+  - copy-assignable
+  - destructible
+  - can be incremented using `operator++`
+  - can be dereferenced using `operator\*`
 
 #### iterator_traits
 

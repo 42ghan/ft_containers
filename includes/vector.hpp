@@ -36,6 +36,65 @@ class __VectorIterator {
   typedef typename traits_type::iterator_category difference_type;
   typedef typename traits_type::iterator_category reference;
   typedef typename traits_type::iterator_category pointer;
+
+  // Constructors
+  __VectorIterator(void) : current_(Iterator()) {}
+
+  __VectorIterator(const Iterator& itr) : current_(itr) {}
+
+  // FIXME : gcc uses enable_if... what is it?
+  __VectorIterator(const __VectorIterator& original) { *this = original; }
+
+  // Destructor
+  ~__VectorIterator(void) {}
+
+  // Copy Assignment operator overload
+  __VectorIterator& operator=(const __VectorIterator& rhs) {
+    current_ = rhs.current_;
+    return *this;
+  }
+
+  // increment & decrement
+  __VectorIterator& operator++(void) FT_NOEXCEPT_ {
+    ++current_;
+    return *this;
+  }
+
+  __VectorIterator operator++(int) FT_NOEXCEPT_ {
+    return __VectorIterator(current_++);
+  }
+
+  __VectorIterator& operator--(void) FT_NOEXCEPT_ {
+    --current_;
+    return *this;
+  }
+
+  __VectorIterator operator--(int) FT_NOEXCEPT_ {
+    return __VectorIterator(current_--);
+  }
+
+  // subscript
+  reference operator[](difference_type n) const FT_NOEXCEPT_ {
+    return current_[n];
+  }
+
+  __VectorIterator& operator+=(difference_type n) const FT_NOEXCEPT_ {
+    current_ += n;
+    return *this;
+  }
+
+  __VectorIterator operator+(difference_type n) const FT_NOEXCEPT_ {
+    return __VectorIterator(current_ + n);
+  }
+
+  __VectorIterator& operator-=(difference_type n) const FT_NOEXCEPT_ {
+    current_ -= n;
+    return *this;
+  }
+
+  __VectorIterator operator-(difference_type n) const FT_NOEXCEPT_ {
+    return __VectorIterator(current_ - n);
+  }
 }
 
 // SECTION : vector base class (RAII wrapper)
