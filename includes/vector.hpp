@@ -19,6 +19,25 @@
 #include <vector>
 
 namespace ft {
+
+// SECTION : vector iterator class
+// implementation of random access iterator for ft::vector
+
+template <typename Iterator, typaname Container>
+class __VectorIterator {
+ protected:
+  Iterator current_;
+  typedef typename ft::iterator_traits<Iterator> traits_type_;
+
+ public:
+  typedef Iterator iterator_type;
+  typedef typename traits_type::iterator_category iterator_category;
+  typedef typename traits_type::iterator_category value_type;
+  typedef typename traits_type::iterator_category difference_type;
+  typedef typename traits_type::iterator_category reference;
+  typedef typename traits_type::iterator_category pointer;
+}
+
 // SECTION : vector base class (RAII wrapper)
 template <typename T, typename Alloc = std::allocator<T> >
 class VectorBase {

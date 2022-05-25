@@ -15,6 +15,10 @@ DIY C++ containers implementation (C++98)
     - [Categories](#categories)
   - [Exception Safety](#exception-safety)
 - [Vector](#vector)
+- [Stack](#stack)
+- [Map](#stack)
+- [Set](#set-red-black-tree)
+- [reverse_iterator](#reverse-iterator)
 
 ## Style Guide
 
@@ -63,15 +67,40 @@ There are two types of containers, sequence containers and assiciative container
 
 ### Iterators
 
+- An iterator is an object that points to some element in a range of elements (e.g. a pointer). By using operators (at least ++ and \*), it can iterate through the elements of that range.
+- Each container type has its specific iterator type.
+
 #### iterator_traits
+
+- `iterator_traits` is a class that defines properties of iterators.
+- For every iterator type, at least the following member types are defined to correspond its properties.
+  - `difference_type`
+  - `value_type`
+  - `pointer`
+  - `reference`
+  - `iterator_category`
+- These member types are checked by STL algorithms to determine properties of the iterators passed to them and the range they represent.
 
 #### Categories
 
+- There exist five different categories of iterators and their hierarchy is like the diagram below.
+<figure>
+<p align="center">
+  <img src="assets/iterator_categories.png" style="width: 80%; height: 80%; "></p>
+  <figcaption align="center" style="font-weight: bold;">hierarchy between each iterator category (refer to the table in <a href="https://www.cplusplus.com/reference/iterator/">cplusplus.com</a> for further details)</figcaption>
+  </figure>
+
 - Random Access Iterator
-- Bidirectional Iteraotr
+  - access elements at an arbitrary offset position relative to the element they point to (same functionality as pointers)
+  - access ranges non-sequentially
+- Bidirectional Iterator
+  - iterate through a range sequentially in both directions
 - Forward Iterator
+  - iterate through a range sequentially in one direction (beginning to end)
 - Input Iterator
+  - read only once, and the iterator is incremented
 - Output Iterator
+  - each element pointed by the iterator is written a value only once, and the iterator is incremented
 
 ### Exception Safety
 
@@ -264,6 +293,14 @@ const_reference back(void) const FT_NOEXCEPT_;
 #### Modifiers
 
 #### `get_allocator`
+
+## Stack
+
+## Map
+
+## Set (Red Black Tree)
+
+## `reverse_iterator`
 
 ## TODO
 
