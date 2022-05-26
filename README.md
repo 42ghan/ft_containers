@@ -150,6 +150,46 @@ class Safe {
     - the destructor releases the resource and never throws exceptions;
   - always use the resource via an instance of a RAII-class that either - has automatic storage duration or temporary lifetime itself, or - has lifetime that is bounded by the lifetime of an automatic or temporary object
 
+### SFINAE & `enable_if`
+
+- SFINAE is an acronym for "Substitiution Is Not An Error."
+- This is a rule applied to avoid a compile error when substituting the explicitly specifed or deduced type for the template parametar fails. Type deduction fails only when invalid types and expressions have been used in the immediate context of the function type and its template parameter types.
+- An example of SFINAE error is when a member of a type was used where the type does not contain the member.
+
+```C++
+template<typename T>
+typename T::value_type negate(const T& t) {
+  retrn -T(t;)
+}
+// a function call to negate(42) will substitue the return type to
+// `int::value_type`, and since `int` type does not have the member, `value_type`,
+// SFINAE error
+```
+
+- `enable_if`, accompanied by `type_traits`, is an useful tool that differentiate template functions for different kinds of types. It can be easily implemented by using metafunctions as following code.
+
+```C++
+template <bool, typename T = void>
+struct enable_if {
+}
+
+template <typename T>
+struct enable_if<true, T> {
+  typedef T type;
+}
+```
+
+- Using `enable_if` in the template parameter as the example below only enables the declared overload for type that are input iterators. Without `enable_if` the typename `_InputIterator` does not have any semantic meaning.
+
+```C++
+template <class _InputIterator>
+vector(_InputIterator __first,
+       typename enable_if<__is_input_iterator<_InputIterator>::value &&
+                          !__is_forward_iterator<_InputIterator>::value &&
+                          ... more conditions ...
+                          _InputIterator>::type __last);
+```
+
 ## Vector
 
 ### Features
@@ -333,6 +373,9 @@ const_reference back(void) const FT_NOEXCEPT_;
 - [cppreference.com](https://en.cppreference.com/w/)
 - [gnu containers source](https://github.com/gcc-mirror/gcc/tree/master/libstdc%2B%2B-v3/include/bits)
 - [llvm containers source](https://github.com/llvm/llvm-project/tree/main/libcxx)
+- [SFINAE and enable_if by Eli Bendersky](https://eli.thegreenplace.net/2014/sfinae-and-enable_if/)
+- [What is C++ metafunction and how to use it?
+  by Sorush Khajepor](https://iamsorush.com/posts/cpp-meta-function/)
 - [Bjarne Stroustrup (2000). The C++ programming language. Boston: Addison-Wesley.](https://www.stroustrup.com/3rd_safe.pdf)
 
 ‌

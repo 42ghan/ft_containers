@@ -23,8 +23,8 @@ namespace ft {
 // SECTION : vector iterator class
 // implementation of random access iterator for ft::vector
 
-template <typename Iterator, typaname Container>
-class __VectorIterator {
+template <typename Iterator>
+class VectorIterator {
  protected:
   Iterator current_;
   typedef typename ft::iterator_traits<Iterator> traits_type_;
@@ -38,39 +38,39 @@ class __VectorIterator {
   typedef typename traits_type::iterator_category pointer;
 
   // Constructors
-  __VectorIterator(void) : current_(Iterator()) {}
+  VectorIterator(void) : current_(Iterator()) {}
 
-  __VectorIterator(const Iterator& itr) : current_(itr) {}
+  VectorIterator(const Iterator& itr) : current_(itr) {}
 
   // FIXME : gcc uses enable_if... what is it?
-  __VectorIterator(const __VectorIterator& original) { *this = original; }
+  VectorIterator(const VectorIterator& original) { *this = original; }
 
   // Destructor
-  ~__VectorIterator(void) {}
+  ~VectorIterator(void) {}
 
   // Copy Assignment operator overload
-  __VectorIterator& operator=(const __VectorIterator& rhs) {
+  VectorIterator& operator=(const VectorIterator& rhs) {
     current_ = rhs.current_;
     return *this;
   }
 
   // increment & decrement
-  __VectorIterator& operator++(void) FT_NOEXCEPT_ {
+  VectorIterator& operator++(void) FT_NOEXCEPT_ {
     ++current_;
     return *this;
   }
 
-  __VectorIterator operator++(int) FT_NOEXCEPT_ {
-    return __VectorIterator(current_++);
+  VectorIterator operator++(int) FT_NOEXCEPT_ {
+    return VectorIterator(current_++);
   }
 
-  __VectorIterator& operator--(void) FT_NOEXCEPT_ {
+  VectorIterator& operator--(void) FT_NOEXCEPT_ {
     --current_;
     return *this;
   }
 
-  __VectorIterator operator--(int) FT_NOEXCEPT_ {
-    return __VectorIterator(current_--);
+  VectorIterator operator--(int) FT_NOEXCEPT_ {
+    return VectorIterator(current_--);
   }
 
   // subscript
@@ -78,23 +78,73 @@ class __VectorIterator {
     return current_[n];
   }
 
-  __VectorIterator& operator+=(difference_type n) const FT_NOEXCEPT_ {
+  VectorIterator& operator+=(difference_type n) const FT_NOEXCEPT_ {
     current_ += n;
     return *this;
   }
 
-  __VectorIterator operator+(difference_type n) const FT_NOEXCEPT_ {
-    return __VectorIterator(current_ + n);
+  VectorIterator operator+(difference_type n) const FT_NOEXCEPT_ {
+    return VectorIterator(current_ + n);
   }
 
-  __VectorIterator& operator-=(difference_type n) const FT_NOEXCEPT_ {
+  VectorIterator& operator-=(difference_type n) const FT_NOEXCEPT_ {
     current_ -= n;
     return *this;
   }
 
-  __VectorIterator operator-(difference_type n) const FT_NOEXCEPT_ {
-    return __VectorIterator(current_ - n);
+  VectorIterator operator-(difference_type n) const FT_NOEXCEPT_ {
+    return VectorIterator(current_ - n);
   }
+
+  const Iterator& base(void) const FT_NOEXCEPT_ { return current_; }
+}
+
+template <typename IteratorL, typename IteratorR>
+inline bool operator==(const VectorIterator<IteratorL>& lhs,
+                       const VectorIterator<IteratorR>& rhs) FT_NOEXCEPT_ {
+  return lsh.base() == rhs.base();
+}
+
+template <typename IteratorL, typename IteratorR>
+inline bool operator!=(const VectorIterator<IteratorL>& lhs,
+                       const VectorIterator<IteratorR>& rhs) FT_NOEXCEPT_ {
+  return lsh.base() == rhs.base();
+}
+
+template <typename IteratorL, typename IteratorR>
+inline bool operator>(const VectorIterator<IteratorL>& lhs,
+                      const VectorIterator<IteratorR>& rhs) FT_NOEXCEPT_ {
+  return lsh.base() > rhs.base();
+}
+
+template <typename IteratorL, typename IteratorR>
+inline bool operator<(const VectorIterator<IteratorL>& lhs,
+                      const VectorIterator<IteratorR>& rhs) FT_NOEXCEPT_ {
+  return lsh.base() < rhs.base();
+}
+
+template <typename IteratorL, typename IteratorR>
+inline bool operator>=(const VectorIterator<IteratorL>& lhs,
+                       const VectorIterator<IteratorR>& rhs) FT_NOEXCEPT_ {
+  return lsh.base() >= rhs.base();
+}
+
+template <typename IteratorL, typename IteratorR>
+inline bool operator<=(const VectorIterator<IteratorL>& lhs,
+                       const VectorIterator<IteratorR>& rhs) FT_NOEXCEPT_ {
+  return lsh.base() <= rhs.base();
+}
+
+template <typename IteratorL, typename IteratorR>
+inline bool operator+(const VectorIterator<IteratorL>& lhs,
+                      const VectorIterator<IteratorR>& rhs) FT_NOEXCEPT_ {
+  return lsh.base() + rhs.base();
+}
+
+template <typename IteratorL, typename IteratorR>
+inline bool operator-(const VectorIterator<IteratorL>& lhs,
+                      const VectorIterator<IteratorR>& rhs) FT_NOEXCEPT_ {
+  return lsh.base() - rhs.base();
 }
 
 // SECTION : vector base class (RAII wrapper)
@@ -149,7 +199,6 @@ template <typename T, typename Alloc = std::allocator<T> >
 class vector : private VectorBase<T, Alloc> {
  private:
   typedef VectorBase<T, Alloc> Base_;
-  Base_ base_;
 
   // FIXME : Unnecessary...?
   // template <typename InputIterator>
@@ -178,12 +227,12 @@ class vector : private VectorBase<T, Alloc> {
   // SECTION : constructors & destructor
   // #1 default : empty container constructor (no elem)
   explicit vector(const allocator_type& alloc = allocator_type())
-      : base_(alloc) {}
+      : Base_(alloc) {}
 
   // #2 fill : construct a container with n elements, fill them with val
   explicit vector(size_type n, const value_type& val,
                   const allocator_type& alloc = allocator_type())
-      : base_(n, alloc) {
+      : Base_(n, alloc) {
     end_ = std::uninitialized_fill_n<iterator, size_type, value_type>(begin_, n,
                                                                       val);
   }
@@ -192,12 +241,12 @@ class vector : private VectorBase<T, Alloc> {
   // range [first, last)  template <typename InputIterator>
   vector(InputIterator first, InputIterator last,
          const allocator_type& alloc = allocator_type())
-      : base_(alloc) {
+      : Base_(alloc) {
     // FIXME : gcc uses push_back
   }
 
   // #4 copy constructor (keeps and uses a copy of x's alloc)
-  vector(const vector& x) : base_(x.size(), x.alloc_) {
+  vector(const vector& x) : Base_(x.size(), x.alloc_) {
     end_ = std::uninitialized_copy<iterator, iterator, iterator>(
         x.begin(), x.end(), begin_);
   }
