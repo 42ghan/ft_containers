@@ -42,8 +42,7 @@ class VectorIterator {
 
   VectorIterator(const Iterator& itr) : current_(itr) {}
 
-  // FIXME : gcc uses enable_if... what is it?
-  VectorIterator(const VectorIterator& original) { *this = original; }
+  VectorIterator(const VectorIterator<>& original) { *this = original; }
 
   // Destructor
   ~VectorIterator(void) {}
@@ -242,6 +241,8 @@ class vector : private VectorBase<T, Alloc> {
   vector(InputIterator first, InputIterator last,
          const allocator_type& alloc = allocator_type())
       : Base_(alloc) {
+    // NOTE : gcc uses __is_integer to check whether the InputIterator is indeed
+    // an iterator
     // FIXME : gcc uses push_back
   }
 
@@ -349,6 +350,8 @@ class vector : private VectorBase<T, Alloc> {
   // range
   template <typename InputIterator>
   void assign(InputIterator first, InputIterator last) {
+    // NOTE : gcc uses __is_integer to check whether the InputIterator is indeed
+    // an iterator
     typename iterator_traits<value_type>::difference_type n =
         std::distance<InputIterator>(first, last);
     if (distance > capacity()) {
@@ -396,7 +399,10 @@ class vector : private VectorBase<T, Alloc> {
 
   // range
   template <typename InputIterator>
-  void insert(iterator position, InputIterator first, InputIterator last) {}
+  void insert(iterator position, InputIterator first, InputIterator last) {
+    // NOTE : gcc uses __is_integer to check whether the InputIterator is indeed
+    // an iterator
+  }
 
   iterator erase(iterator position) {
     if (position == end_)
