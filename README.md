@@ -14,11 +14,17 @@ DIY C++ containers implementation (C++98)
     - [`iterator_traits`](#iterator-traits)
     - [Categories](#categories)
   - [Exception Safety](#exception-safety)
+  - [SFINAE & `enable_if`](#sfinae--enableif)
 - [Vector](#vector)
 - [Stack](#stack)
 - [Map](#stack)
 - [Set](#set-red-black-tree)
-- [reverse_iterator](#reverse-iterator)
+- [`enable_if` & `is_integral`](#enableif--isintegral)
+- [Algorithm & Utility](#algorithm--utility)
+  - [`lexicographical_compare`](#lexicographicalcompare)
+  - [`equal`](#equal)
+  - [`pair`](#pair)
+  - [`make_pair`](#makepair)
 
 ## Style Guide
 
@@ -353,7 +359,17 @@ const_reference back(void) const FT_NOEXCEPT_;
 
 ## Set (Red Black Tree)
 
-## `reverse_iterator`
+## `enable_if` & `is_integral`
+
+## Algorithm & Utility
+
+### `lexicographical_compare`
+
+### `equal`
+
+### `pair`
+
+### `make_pair`
 
 ## TODO
 

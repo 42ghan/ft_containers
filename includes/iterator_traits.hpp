@@ -189,7 +189,6 @@ inline typename reverse_iterator<Iterator>::difference_type operator-(
     const reverse_iterator<Iterator>& rhs) FT_NOEXCEPT_ {
   return rsh.base() - lhs.base();
 }
-
 }  // namespace ft
 
 #endif
