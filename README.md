@@ -203,22 +203,29 @@ vector(_InputIterator __first,
 - In STL Containers `std::vector` implementation, `vector_base` class functions as an [RAII](#raii) (exception-safety technique) wrapper.
 - Aquisition of resources occur in the `vector_base` wrapper's instantiation and the resources are released when the wrapper is destroyed (after the instance of the inherited class is destroyed), so the `std::vector` instance can safely access the resources during its lifetime.
 
+### Implementation of container specific iterator
+
+- Each container needs its own specific iterator type that meets its special requirements. E.g. `vector`'s iterator must meet requirements of `random_access_iterator` category while `list`'s iterator must meet requirements of `bidirectional_iterator` category.
+- In gcc implementation, `random_access_iterator` for the vector was implemented using `std::__normal_iterator` template class, which seems like a generic iterator template for any randomly accessible iterable objects such as `vector`, `array`, `std::string`.
+- However, since only `vector` is the randomly accessible iterable object, the container's specific iterator, `VectorIterator`, has been implemented.
+- `random_access_iterator` inherits characteristics of `bidirectional_iterator`. In order to support iteration in reverse way, a generic `reverse_iterator` class template was implemented.
+
 ### Member Types
 
 ```C++
 typedef T value_type;
-typedef typename Alloc allocator_type;
-typedef typename allocator_traits<allocator_type> alloc_traits;
-typedef typename alloc_traits::size_type size_type;
+typedef typename Base_::allocator_type allocator_type;
+typedef typename Base_::alloc_traits alloc_traits;
+typedef typename Base_::size_type size_type;
 typedef typename alloc_traits::difference_type difference_type;
-typedef typename alloc_traits:: pointer;
+typedef typename Base_::pointer pointer;
 typedef typename alloc_traits::const_pointer const_pointer;
 typedef typename alloc_traits::reference reference;
 typedef typename alloc_traits::const_reference const_reference;
-typedef pointer iterator;              // FIXME
-typedef const_pointer const_iterator;  // FIXME
-typedef std::reverse_iterator<iterator> reverse_iterator; // FIXME
-typedef std::reverse_iterator<const_iterator> const_reverse_iterator; // FIXME
+typedef VectorIterator<pointer> iterator;
+typedef VectorIterator<const_pointer> const_iterator;
+typedef reverse_iterator<iterator> reverse_iterator;
+typedef reverse_iterator<const_iterator> const_reverse_iterator;
 ```
 
 ### Member Functions

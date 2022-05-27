@@ -96,7 +96,7 @@ class VectorIterator {
   }
 
   const Iterator& base(void) const FT_NOEXCEPT_ { return current_; }
-}
+};
 
 template <typename IteratorL, typename IteratorR>
 inline bool operator==(const VectorIterator<IteratorL>& lhs,
@@ -134,15 +134,17 @@ inline bool operator<=(const VectorIterator<IteratorL>& lhs,
   return lsh.base() <= rhs.base();
 }
 
-template <typename IteratorL, typename IteratorR>
-inline bool operator+(const VectorIterator<IteratorL>& lhs,
-                      const VectorIterator<IteratorR>& rhs) FT_NOEXCEPT_ {
-  return lsh.base() + rhs.base();
+template <typename Iterator>
+inline VectorIterator<Iterator> operator+(
+    typename VectorIterator<Iterator>::difference_type n,
+    const VectorIterator<Iterator>& itr) FT_NOEXCEPT_ {
+  return VectorIterator<Iterator>(itr.base() + n);
 }
 
-template <typename IteratorL, typename IteratorR>
-inline bool operator-(const VectorIterator<IteratorL>& lhs,
-                      const VectorIterator<IteratorR>& rhs) FT_NOEXCEPT_ {
+template <typename Iterator>
+inline typename VectorIterator<Iterator>::difference_type operator-(
+    const VectorIterator<Iterator>& lhs,
+    const VectorIterator<Iterator>& rhs) FT_NOEXCEPT_ {
   return lsh.base() - rhs.base();
 }
 
@@ -199,13 +201,6 @@ class vector : private VectorBase<T, Alloc> {
  private:
   typedef VectorBase<T, Alloc> Base_;
 
-  // FIXME : Unnecessary...?
-  // template <typename InputIterator>
-  // InitCopyRange_(InputIterator first, InputIterator last) {
-  //   for (; first != last; first++)
-  //     ;
-  // }
-
  public:
   // SECTION : member types
   typedef T value_type;
@@ -217,11 +212,10 @@ class vector : private VectorBase<T, Alloc> {
   typedef typename alloc_traits::const_pointer const_pointer;
   typedef typename alloc_traits::reference reference;
   typedef typename alloc_traits::const_reference const_reference;
-  typedef pointer iterator;                                  // FIXME
-  typedef const_pointer const_iterator;                      // FIXME
-  typedef std::reverse_iterator<iterator> reverse_iterator;  // FIXME
-  typedef std::reverse_iterator<const_iterator>
-      const_reverse_iterator;  // FIXME
+  typedef VectorIterator<pointer> iterator;
+  typedef VectorIterator<const_pointer> const_iterator;
+  typedef reverse_iterator<iterator> reverse_iterator;
+  typedef reverse_iterator<const_iterator> const_reverse_iterator;
 
   // SECTION : constructors & destructor
   // #1 default : empty container constructor (no elem)
