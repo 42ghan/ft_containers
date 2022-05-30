@@ -351,6 +351,74 @@ const_reference back(void) const FT_NOEXCEPT_;
 
 #### Modifiers
 
+```C++
+// assign : assigns new contents to the vector, destroying and replacing current contents
+// modifies the vector's size iff the new vector's size() > the current vector's capacity()
+// #1 range : new contents from [first, last)
+template <typename InputIterator>
+void assign(InputIterator first, InputIterator last);
+
+// #2 fill : n elements, initialized to a copy of val
+void assign(size_type n, const value_type& val);
+
+// push_back : add element at the end
+// reallocation takes place iff the new vector's size() > the current vector's capacity()
+void push_back(const value_type& val);
+
+// pop_back : removes the last element
+void pop_back(void) FT_NOEXCEPT_;
+
+// insert : inserts new elements before the element at the specified position
+// reallocation takes place iff the new vector's size() > the current vector's capacity()
+// #1 single element : insert single element, initialized to a copy of val, in front of the position
+iterator insert(iterator position, const value_type& val);
+
+// #2 fill : insert n copies of the val before position
+void insert(iterator position, size_type n, const value_type& val);
+
+// #3 range : inserts elements from [first, last) before position
+template <typename InputIterator>
+void insert(iterator position, InputIterator first, InputIterator last);
+
+// erase
+// #1 single element : removes a single element at the position from the vector
+iterator erase(iterator position);
+
+// #2 range : removes a range of elements([first, last)) from the vector
+iterator erase(iterator first, iterator last);
+
+// swap : swap contents with x
+void swap(vector& x);
+
+// clear : removes all elements from the vector
+void clear(void) FT_NOEXCEPT_;
+```
+
+- **Exception Safety** :
+  - `assign`
+    - basic guarantee
+    - UB in case inappropriate arguments have been passed to `allocator_traits::construct` for the element constructions, or the range specified by [first,last) is not valid.
+  - `push_back`
+    - if no reallocation, strong guarantee
+    - else if the type of the elements is either copyable or no-throw moveable, strong guarantee
+    - else, basic guarantee
+    - UB if `allocator_traits::construct` is not supported with `val` as argument
+  - `pop_back`
+    - non-throwing, if empty, UB
+  - `insert`
+    - if single element at the end & no reallocation, strong guarantee
+    - if reallocation takes place and the type of the elements is either copyable or no-throw moveable, strong guarantee
+    - else, basic guarantee
+  - `erase`
+    - if the last element is also removed, non-throwing
+    - else, basic guarantee
+    - UB if position/range is invalid
+  - `swap`
+    - if the same `allocator` / allocator traits indicate that the allocators can propagate, non-throwing
+    - else, UB
+  - `clear`
+    - non-throwing
+
 #### `get_allocator`
 
 ## Stack
