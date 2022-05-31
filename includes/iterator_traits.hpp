@@ -21,11 +21,11 @@ struct random_access_iterator_tag : public bidirectional_iterator_tag {};
 
 template <typename Iter>
 struct iterator_traits {
-  typedef Iter::difference_type difference_type;
-  typedef Iter::value_type value_type;
-  typedef Iter::pointer pointer;
-  typedef Iter::reference reference;
-  typedef Iter::iterator_category iterator_category;
+  typedef typename Iter::difference_type difference_type;
+  typedef typename Iter::value_type value_type;
+  typedef typename Iter::pointer pointer;
+  typedef typename Iter::reference reference;
+  typedef typename Iter::iterator_category iterator_category;
 };
 
 template <typename T>
@@ -119,6 +119,12 @@ class reverse_iterator
     return *(*this + n);
   }
 
+  // dereference & reference
+  reference operator*(void) const FT_NOEXCEPT_ { return *current_; }
+
+  pointer operator->(void) const FT_NOEXCEPT_ { return current_; }
+
+  // add or subtract difference
   reverse_iterator& operator+=(difference_type n) const FT_NOEXCEPT_ {
     current_ -= n;
     return *this;
@@ -138,47 +144,47 @@ class reverse_iterator
   }
 
   const Iterator& base(void) const FT_NOEXCEPT_ { return current_; }
-}
+};
 
 template <typename IteratorL, typename IteratorR>
 inline bool operator==(const reverse_iterator<IteratorL>& lhs,
                        const reverse_iterator<IteratorR>& rhs) FT_NOEXCEPT_ {
-  return lsh.base() == rhs.base();
+  return lhs.base() == rhs.base();
 }
 
 template <typename IteratorL, typename IteratorR>
 inline bool operator!=(const reverse_iterator<IteratorL>& lhs,
                        const reverse_iterator<IteratorR>& rhs) FT_NOEXCEPT_ {
-  return lsh.base() == rhs.base();
+  return lhs.base() == rhs.base();
 }
 
 template <typename IteratorL, typename IteratorR>
 inline bool operator>(const reverse_iterator<IteratorL>& lhs,
                       const reverse_iterator<IteratorR>& rhs) FT_NOEXCEPT_ {
-  return lsh.base() < rhs.base();
+  return lhs.base() < rhs.base();
 }
 
 template <typename IteratorL, typename IteratorR>
 inline bool operator<(const reverse_iterator<IteratorL>& lhs,
                       const reverse_iterator<IteratorR>& rhs) FT_NOEXCEPT_ {
-  return lsh.base() > rhs.base();
+  return lhs.base() > rhs.base();
 }
 
 template <typename IteratorL, typename IteratorR>
 inline bool operator>=(const reverse_iterator<IteratorL>& lhs,
                        const reverse_iterator<IteratorR>& rhs) FT_NOEXCEPT_ {
-  return lsh.base() <= rhs.base();
+  return lhs.base() <= rhs.base();
 }
 
 template <typename IteratorL, typename IteratorR>
 inline bool operator<=(const reverse_iterator<IteratorL>& lhs,
                        const reverse_iterator<IteratorR>& rhs) FT_NOEXCEPT_ {
-  return lsh.base() >= rhs.base();
+  return lhs.base() >= rhs.base();
 }
 
 template <typename Iterator>
 inline reverse_iterator<Iterator> operator+(
-    typename reverse_iterator<Iter>::difference_type n,
+    typename reverse_iterator<Iterator>::difference_type n,
     const reverse_iterator<Iterator>& itr) FT_NOEXCEPT_ {
   return reverse_iterator<Iterator>(itr.base() - n);
 }
@@ -187,7 +193,7 @@ template <typename Iterator>
 inline typename reverse_iterator<Iterator>::difference_type operator-(
     const reverse_iterator<Iterator>& lhs,
     const reverse_iterator<Iterator>& rhs) FT_NOEXCEPT_ {
-  return rsh.base() - lhs.base();
+  return rhs.base() - lhs.base();
 }
 }  // namespace ft
 

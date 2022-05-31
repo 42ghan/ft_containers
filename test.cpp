@@ -3,32 +3,10 @@
 #include <iostream>
 #include <vector>
 
-// class Base {
-//  protected:
-//   int num;
-
-//  public:
-//   Base(void) { std::cout << "Base created\n"; }
-//   Base(int n) { std::cout << "Base n created\n"; }
-//   ~Base(void) { std::cout << "Base destroyed\n"; }
-// };
-
-// class Derived : public Base {
-//  private:
-//   Base base_;
-
-//  public:
-//   Derived(void) : base_(1) { std::cout << "Derived created\n"; }
-//   Derived(int n) : base_(n) { std::cout << "Derived created\n"; }
-//   ~Derived(void) { std::cout << "Derived destroyed\n"; }
-//   int getNum(void) { return num; }
-// };
-
-// template <typename T, typename U>
-
 class Base {
  protected:
-  int num_;
+  typedef int int_custom;
+  int_custom num_;
 
  public:
   Base(void) { std::cout << "Base created\n"; }
@@ -37,20 +15,23 @@ class Base {
   int getNum(void) const { return num_; }
 };
 
-class Test : public Base {
+class Test : protected Base {
  public:
   Test(int n) : Base(n) {}
+  void print(void) { std::cout << num_ << "\n"; }
 };
 
-bool operator==(const Test& lhs, const Base& rhs) {
-  return lhs.getNum() == rhs.getNum();
-}
+// bool operator==(const Test& lhs, const Base& rhs) {
+//   return lhs.getNum() == rhs.getNum();
+// }
 
 int main(void) {
   Test base(4242);
   Test derived(42);
 
-  std::cout << (derived == base);
+  base.print();
+
+  // std::cout << (derived == base);
 }
 
 // int main(void) {
