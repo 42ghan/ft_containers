@@ -115,7 +115,7 @@ inline bool operator==(const VectorIterator<IteratorL>& lhs,
 template <typename IteratorL, typename IteratorR>
 inline bool operator!=(const VectorIterator<IteratorL>& lhs,
                        const VectorIterator<IteratorR>& rhs) FT_NOEXCEPT_ {
-  return lhs.base() == rhs.base();
+  return !(lhs.base() == rhs.base());
 }
 
 template <typename IteratorL, typename IteratorR>
