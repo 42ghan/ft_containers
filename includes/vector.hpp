@@ -24,7 +24,6 @@ namespace ft {
 
 // SECTION : vector iterator class
 // implementation of random access iterator for ft::vector
-
 template <typename Iterator>
 class VectorIterator {
  protected:
@@ -75,37 +74,27 @@ class VectorIterator {
   }
 
   // subscript
-  reference operator[](difference_type n) FT_NOEXCEPT_ {
-    return current_[n];
-  }
-  
-  const reference operator[](difference_type n) const FT_NOEXCEPT_ {
-    return current_[n];
-  }
+  reference operator[](difference_type n) FT_NOEXCEPT_ { return current_[n]; }
 
   // dereference & reference
-  
+
   reference operator*(void) const FT_NOEXCEPT_ { return *current_; }
 
-  const reference operator*(void) FT_NOEXCEPT_ { return *current_; }
-
-  pointer operator->(void) FT_NOEXCEPT_ { return current_; }
-  
-  const pointer operator->(void) const FT_NOEXCEPT_ { return current_; }
+  pointer operator->(void) const FT_NOEXCEPT_ { return current_; }
 
   // add or subtract difference
-  VectorIterator& operator+=(difference_type n) const FT_NOEXCEPT_ {
+  VectorIterator& operator+=(difference_type n) FT_NOEXCEPT_ {
     current_ += n;
+    return *this;
+  }
+
+  VectorIterator& operator-=(difference_type n) FT_NOEXCEPT_ {
+    current_ -= n;
     return *this;
   }
 
   VectorIterator operator+(difference_type n) const FT_NOEXCEPT_ {
     return VectorIterator(current_ + n);
-  }
-
-  VectorIterator& operator-=(difference_type n) const FT_NOEXCEPT_ {
-    current_ -= n;
-    return *this;
   }
 
   VectorIterator operator-(difference_type n) const FT_NOEXCEPT_ {
@@ -115,53 +104,53 @@ class VectorIterator {
   const Iterator& base(void) const FT_NOEXCEPT_ { return current_; }
 };
 
-template <typename T>
-inline bool operator==(const VectorIterator<T>& lhs,
-                       const VectorIterator<T>& rhs) FT_NOEXCEPT_ {
+template <typename IteratorL, typename IteratorR>
+inline bool operator==(const VectorIterator<IteratorL>& lhs,
+                       const VectorIterator<IteratorR>& rhs) FT_NOEXCEPT_ {
   return lhs.base() == rhs.base();
 }
 
-template <typename T>
-inline bool operator!=(const VectorIterator<T>& lhs,
-                       const VectorIterator<T>& rhs) FT_NOEXCEPT_ {
+template <typename IteratorL, typename IteratorR>
+inline bool operator!=(const VectorIterator<IteratorL>& lhs,
+                       const VectorIterator<IteratorR>& rhs) FT_NOEXCEPT_ {
   return !(lhs.base() == rhs.base());
 }
 
-template <typename T>
-inline bool operator>(const VectorIterator<T>& lhs,
-                      const VectorIterator<T>& rhs) FT_NOEXCEPT_ {
+template <typename IteratorL, typename IteratorR>
+inline bool operator>(const VectorIterator<IteratorL>& lhs,
+                      const VectorIterator<IteratorR>& rhs) FT_NOEXCEPT_ {
   return lhs.base() > rhs.base();
 }
 
-template <typename T>
-inline bool operator<(const VectorIterator<T>& lhs,
-                      const VectorIterator<T>& rhs) FT_NOEXCEPT_ {
+template <typename IteratorL, typename IteratorR>
+inline bool operator<(const VectorIterator<IteratorL>& lhs,
+                      const VectorIterator<IteratorR>& rhs) FT_NOEXCEPT_ {
   return lhs.base() < rhs.base();
 }
 
-template <typename T>
-inline bool operator>=(const VectorIterator<T>& lhs,
-                       const VectorIterator<T>& rhs) FT_NOEXCEPT_ {
+template <typename IteratorL, typename IteratorR>
+inline bool operator>=(const VectorIterator<IteratorL>& lhs,
+                       const VectorIterator<IteratorR>& rhs) FT_NOEXCEPT_ {
   return lhs.base() >= rhs.base();
 }
 
-template <typename T>
-inline bool operator<=(const VectorIterator<T>& lhs,
-                       const VectorIterator<T>& rhs) FT_NOEXCEPT_ {
+template <typename IteratorL, typename IteratorR>
+inline bool operator<=(const VectorIterator<IteratorL>& lhs,
+                       const VectorIterator<IteratorR>& rhs) FT_NOEXCEPT_ {
   return lhs.base() <= rhs.base();
 }
 
-template <typename T>
-inline typename VectorIterator<T>::difference_type operator+(
-    const VectorIterator<T>& lhs,
-    const VectorIterator<T>& rhs) FT_NOEXCEPT_ {
+template <typename Iterator>
+inline typename VectorIterator<Iterator>::difference_type operator+(
+    const VectorIterator<Iterator>& lhs,
+    const VectorIterator<Iterator>& rhs) FT_NOEXCEPT_ {
   return lhs.base() + rhs.base();
 }
 
-template <typename T>
-inline typename VectorIterator<T>::difference_type operator-(
-    const VectorIterator<T>& lhs,
-    const VectorIterator<T>& rhs) FT_NOEXCEPT_ {
+template <typename Iterator>
+inline typename VectorIterator<Iterator>::difference_type operator-(
+    const VectorIterator<Iterator>& lhs,
+    const VectorIterator<Iterator>& rhs) FT_NOEXCEPT_ {
   return lhs.base() - rhs.base();
 }
 
@@ -173,6 +162,7 @@ class VectorBase {
   typedef T value_type;
   typedef Alloc allocator_type;
   typedef typename allocator_type::pointer pointer;
+  typedef typename allocator_type::const_pointer const_pointer;
   typedef typename allocator_type::size_type size_type;
 
   pointer begin_;           // start of alloc
@@ -223,8 +213,7 @@ class vector : protected VectorBase<T, Alloc> {
         std::distance<InputIterator>(first, last);
     if (n > capacity()) {
       vector<value_type, allocator_type> temp(n, this->alloc_);
-      temp.end_ = std::uninitialized_copy(first, last,
-                                                              temp.begin());
+      temp.end_ = std::uninitialized_copy(first, last, temp.begin());
       swap(temp);
     } else {
       clear();
@@ -261,7 +250,7 @@ class vector : protected VectorBase<T, Alloc> {
           this->alloc_.construct(ritr, *(ritr + 1));
         }
         for (iterator itr = position; first != last; first++) {
-          this->alloc_.destroy(itr.base() );
+          this->alloc_.destroy(itr.base());
           this->alloc_.construct(itr.base(), *first);
           itr++;
         }
@@ -276,7 +265,7 @@ class vector : protected VectorBase<T, Alloc> {
   typedef typename Base_::size_type size_type;
   typedef typename allocator_type::difference_type difference_type;
   typedef typename Base_::pointer pointer;
-  typedef typename allocator_type::const_pointer const_pointer;
+  typedef typename Base_::const_pointer const_pointer;
   typedef value_type& reference;
   typedef const value_type& const_reference;
   typedef VectorIterator<const_pointer> const_iterator;
@@ -330,15 +319,17 @@ class vector : protected VectorBase<T, Alloc> {
     return const_iterator(this->begin_);
   }
 
+  iterator end(void) FT_NOEXCEPT_ { return iterator(this->end_); }
+
+  const_iterator end(void) const FT_NOEXCEPT_ {
+    return const_iterator(this->end_);
+  }
+
   reverse_iterator rbegin(void) FT_NOEXCEPT_ { return reverse_iterator(end()); }
 
   const_reverse_iterator rbegin(void) const FT_NOEXCEPT_ {
     return const_reverse_iterator(end());
   }
-
-  iterator end(void) FT_NOEXCEPT_ { return iterator(this->end_); }
-
-  const_iterator end(void) const FT_NOEXCEPT_ { return const_iterator(this->end_); }
 
   reverse_iterator rend(void) FT_NOEXCEPT_ { return reverse_iterator(begin()); }
 
@@ -347,7 +338,9 @@ class vector : protected VectorBase<T, Alloc> {
   }
 
   // SECTION : capacity
-  size_type size(void) const FT_NOEXCEPT_ { return size_type(this->end_ - this->begin_); }
+  size_type size(void) const FT_NOEXCEPT_ {
+    return size_type(this->end_ - this->begin_);
+  }
 
   size_type max_size(void) const FT_NOEXCEPT_ {
     const size_type diff_max =
@@ -358,7 +351,8 @@ class vector : protected VectorBase<T, Alloc> {
 
   void resize(size_type n, value_type val = value_type()) {
     if (n <= size())
-      for (iterator itr = begin() + n; itr != end(); itr++) this->alloc_.destroy(itr.base());
+      for (iterator itr = begin() + n; itr != end(); itr++)
+        this->alloc_.destroy(itr.base());
     else {
       if (n > capacity()) reserve(n);
       std::uninitialized_fill_n(end(), n - size(), val);
@@ -436,7 +430,7 @@ class vector : protected VectorBase<T, Alloc> {
     } else {
       vector temp(size() + 1);
       std::uninitialized_copy(begin(), end(), temp.begin());
-      temp.end_ =  temp.begin_ + difference_type(end() - begin());
+      temp.end_ = temp.begin_ + difference_type(end() - begin());
       this->alloc_.construct(temp.end_, val);
       temp.end_++;
       swap(temp);
@@ -498,7 +492,7 @@ class vector : protected VectorBase<T, Alloc> {
           this->alloc_.construct(ritr, *(ritr + 1));
         }
         for (iterator itr = position; itr != position + n; itr++) {
-          this->alloc_.destroy(itr.base() );
+          this->alloc_.destroy(itr.base());
           this->alloc_.construct(itr.base(), val);
         }
       }
@@ -520,7 +514,7 @@ class vector : protected VectorBase<T, Alloc> {
       pop_back();
     else {
       for (iterator itr = position; itr + 1 != end(); itr++) {
-        this->alloc_.destroy(itr.base() );
+        this->alloc_.destroy(itr.base());
         this->alloc_.construct(itr.base(), *(itr + 1));
       }
       this->end_--;

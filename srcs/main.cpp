@@ -104,12 +104,16 @@
 
 #include <iostream>
 #include <string>
-#include <vector>
+// #include <vector>
 
 #include "vector.hpp"
 
 int main(void) {
   ft::vector<std::string> s(5, "blah");
+  //   ft::vector<std::string>::const_iterator citr;
+  //   ft::vector<std::string>::iterator itr = s.begin();
+  //   citr = itr;
+  //   std::cout << *citr;
   ft::vector<std::string> v(s.begin(), s.end());
   v.push_back("hi1");
   v.push_back("hi2");
