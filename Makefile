@@ -10,7 +10,7 @@ endif
 
 NAME		=	ft_containers
 
-SRCS		=	main.cpp\
+SRCS		=	srcs/main.cpp\
 
 OBJS		=	$(SRCS:%.cpp=%.o)
 
@@ -66,7 +66,7 @@ fclean		:	clean
 
 .PHONY		:	re
 re			:	fclean
-				$(MAKE) all
+				@$(MAKE) all
 
 .PHONY		:	debug
 debug		:

@@ -21,53 +21,51 @@ struct enable_if<true, T> {
 };
 
 // is integral
+typedef std::integral_constant<bool, true> true_type;
+typedef std::integral_constant<bool, false> false_type;
+
 template <typename T>
-struct is_integral : public std::false_type {};
+struct is_integral : public false_type {};
 
 template <>
-struct is_integral<bool> : public std::true_type {};
+struct is_integral<bool> : public true_type {};
 
 template <>
-struct is_integral<char> : public std::true_type {};
+struct is_integral<char> : public true_type {};
 
 template <>
-struct is_integral<char16_t> : public std::true_type {};
+struct is_integral<char16_t> : public true_type {};
 
 template <>
-struct is_integral<char32_t> : public std::true_type {};
+struct is_integral<char32_t> : public true_type {};
 
 template <>
-struct is_integral<wchar_t> : public std::true_type {};
+struct is_integral<wchar_t> : public true_type {};
 
 template <>
-struct is_integral<signed char> : public std::true_type {};
+struct is_integral<signed char> : public true_type {};
 
 template <>
-struct is_integral<short int> : public std::true_type {};
+struct is_integral<short int> : public true_type {};
 
 template <>
-struct is_integral<int> : public std::true_type {};
+struct is_integral<int> : public true_type {};
 
 template <>
-struct is_integral<long int> : public std::true_type {};
+struct is_integral<long int> : public true_type {};
 
 template <>
-struct is_integral<long long int> : public std::true_type {};
+struct is_integral<unsigned char> : public true_type {};
 
 template <>
-struct is_integral<unsigned char> : public std::true_type {};
+struct is_integral<unsigned short int> : public true_type {};
 
 template <>
-struct is_integral<unsigned short int> : public std::true_type {};
+struct is_integral<unsigned int> : public true_type {};
 
 template <>
-struct is_integral<unsigned int> : public std::true_type {};
+struct is_integral<unsigned long int> : public true_type {};
 
-template <>
-struct is_integral<unsigned long int> : public std::true_type {};
-
-template <>
-struct is_integral<unsigned long long int> : public std::true_type {};
 }  // namespace ft
 
 #endif

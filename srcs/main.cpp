@@ -103,19 +103,24 @@
 // ======================================================================================//
 
 #include <iostream>
+#include <string>
+#include <vector>
 
-#include "../includes/vector.hpp"
+#include "vector.hpp"
 
 int main(void) {
-  ft::vector<int> v(5);
-  v.push_back(1);
-  v.push_back(2);
-  v.push_back(3);
-  v.push_back(4);
-  v.push_back(5);
-  for (ft::vector<int>::iterator itr = v.begin(); itr != v.end(); itr++) {
-    std::cout << 'a' << "\n";
+  ft::vector<std::string> s(5, "blah");
+  ft::vector<std::string> v(s.begin(), s.end());
+  v.push_back("hi1");
+  v.push_back("hi2");
+  v.push_back("hi3");
+  v.push_back("hi4");
+  v.push_back("hi5");
+  for (ft::vector<std::string>::const_iterator itr = v.begin(); itr != v.end();
+       itr++)
     std::cout << *itr << "\n";
-  }
+  v.reserve(100);
+  std::cout << s.size() << " " << v.size() << "\n";
+  std::cout << s.capacity() << " " << v.capacity() << "\n";
   // FIXME
 }

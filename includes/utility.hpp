@@ -8,14 +8,14 @@
 #ifndef FT_CONTAINERS_INCLUDES_UTILITY_HPP_
 #define FT_CONTAINERS_INCLUDES_UTILITY_HPP_
 
-namespace ft {
-// pair
-template <class T1, class T2>
-struct pair {};
+// namespace ft {
+// // pair
+// template <class T1, class T2>
+// struct pair {};
 
-// make_pair
-template <class T1, class T2>
-pair<T1, T2> make_pair(T1 x, T2 y) {}
-}  // namespace ft
+// // make_pair
+// template <class T1, class T2>
+// pair<T1, T2> make_pair(T1 x, T2 y) {}
+// }  // namespace ft
 
 #endif
