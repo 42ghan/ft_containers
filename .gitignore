@@ -33,4 +33,4 @@
 
 *.vscode
 
-./includes/containers_test/
+includes/containers_test/
