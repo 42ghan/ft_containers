@@ -20,9 +20,18 @@ struct enable_if<true, T> {
   typedef T type;
 };
 
+// integral_constant
+template <typename T, T v>
+struct integral_constant {
+  static const T value = v;
+  typedef T value_type;
+  typedef integral_constant<T, value> type;
+  operator value_type(void) const FT_NOEXCEPT_ { return value; }
+};
+
 // is integral
-typedef std::integral_constant<bool, true> true_type;
-typedef std::integral_constant<bool, false> false_type;
+typedef integral_constant<bool, true> true_type;
+typedef integral_constant<bool, false> false_type;
 
 template <typename T>
 struct is_integral : public false_type {};

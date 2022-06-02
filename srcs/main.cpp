@@ -104,27 +104,43 @@
 
 #include <iostream>
 #include <string>
-// #include <vector>
+#include <vector>
 
 #include "vector.hpp"
 
+// int main(void) {
+//   ft::vector<int> s(5, 1);
+//   ft::vector<int>::iterator citr;
+//   ft::vector<int>::const_iterator itr = s.begin();
+//   citr = itr;
+//   std::cout << *citr;
+//   // ft::vector<int> v(s.begin(), s.end());
+//   // v.push_back(1);
+//   // v.push_back(2);
+//   // v.push_back(3);
+//   // v.push_back(4);
+//   // v.push_back(5);
+//   // for (ft::vector<int>::const_iterator itr = v.begin(); itr != v.end();
+//   // itr++)
+//   //   std::cout << *itr << "\n";
+//   // v.reserve(100);
+//   // std::cout << s.size() << " " << v.size() << "\n";
+//   // std::cout << s.capacity() << " " << v.capacity() << "\n";
+//   // FIXME
+// }
+
 int main(void) {
-  ft::vector<std::string> s(5, "blah");
-  //   ft::vector<std::string>::const_iterator citr;
-  //   ft::vector<std::string>::iterator itr = s.begin();
-  //   citr = itr;
-  //   std::cout << *citr;
-  ft::vector<std::string> v(s.begin(), s.end());
-  v.push_back("hi1");
-  v.push_back("hi2");
-  v.push_back("hi3");
-  v.push_back("hi4");
-  v.push_back("hi5");
-  for (ft::vector<std::string>::const_iterator itr = v.begin(); itr != v.end();
-       itr++)
+  ft::vector<int> v(5, 1);
+  ft::vector<int> copy = v;
+
+  v.clear();
+
+  std::cout << "========== original ===========\n";
+  std::cout << "size : " << v.size() << "\n";
+  for (ft::vector<int>::iterator itr = v.begin(); itr != v.end(); itr++)
     std::cout << *itr << "\n";
-  v.reserve(100);
-  std::cout << s.size() << " " << v.size() << "\n";
-  std::cout << s.capacity() << " " << v.capacity() << "\n";
-  // FIXME
+  std::cout << "========== copy ===========\n";
+  std::cout << "size : " << copy.size() << "\n";
+  for (ft::vector<int>::iterator itr = copy.begin(); itr != copy.end(); itr++)
+    std::cout << *itr << "\n";
 }

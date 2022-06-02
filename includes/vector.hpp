@@ -26,7 +26,7 @@ namespace ft {
 // implementation of random access iterator for ft::vector
 template <typename Iterator>
 class VectorIterator {
- protected:
+ private:
   Iterator current_;
   typedef typename ft::iterator_traits<Iterator> traits_type_;
 
@@ -41,14 +41,21 @@ class VectorIterator {
   // Constructors
   VectorIterator(void) : current_(Iterator()) {}
 
-  VectorIterator(const Iterator& itr) : current_(itr) {}
+  VectorIterator(Iterator itr) : current_(itr) {}
 
-  VectorIterator(const VectorIterator& original) { *this = original; }
+  VectorIterator(const VectorIterator& original)
+      : current_(original.current_) {}
 
   // Destructor
   ~VectorIterator(void) {}
 
   // Copy Assignment operator overload
+
+  template <typename U>
+  operator VectorIterator<const U*>(void) {
+    return (VectorIterator<const U*>(base()));
+  }
+
   VectorIterator& operator=(const VectorIterator& rhs) {
     current_ = rhs.current_;
     return *this;
@@ -101,7 +108,7 @@ class VectorIterator {
     return VectorIterator(current_ - n);
   }
 
-  const Iterator& base(void) const FT_NOEXCEPT_ { return current_; }
+  Iterator base(void) const FT_NOEXCEPT_ { return current_; }
 };
 
 template <typename IteratorL, typename IteratorR>
@@ -141,16 +148,16 @@ inline bool operator<=(const VectorIterator<IteratorL>& lhs,
 }
 
 template <typename Iterator>
-inline typename VectorIterator<Iterator>::difference_type operator+(
-    const VectorIterator<Iterator>& lhs,
-    const VectorIterator<Iterator>& rhs) FT_NOEXCEPT_ {
-  return lhs.base() + rhs.base();
+inline VectorIterator<Iterator> operator+(
+    typename VectorIterator<Iterator>::difference_type n,
+    const VectorIterator<Iterator>& itr) FT_NOEXCEPT_ {
+  return VectorIterator<Iterator>(itr.base() + n);
 }
 
-template <typename Iterator>
-inline typename VectorIterator<Iterator>::difference_type operator-(
-    const VectorIterator<Iterator>& lhs,
-    const VectorIterator<Iterator>& rhs) FT_NOEXCEPT_ {
+template <typename IteratorL, typename IteratorR>
+inline typename VectorIterator<IteratorL>::difference_type operator-(
+    const VectorIterator<IteratorL>& lhs,
+    const VectorIterator<IteratorR>& rhs) FT_NOEXCEPT_ {
   return lhs.base() - rhs.base();
 }
 
@@ -211,13 +218,13 @@ class vector : protected VectorBase<T, Alloc> {
   void RangeAssign_(InputIterator first, InputIterator last) {
     typename iterator_traits<InputIterator>::difference_type n =
         std::distance<InputIterator>(first, last);
-    if (n > capacity()) {
-      vector<value_type, allocator_type> temp(n, this->alloc_);
-      temp.end_ = std::uninitialized_copy(first, last, temp.begin());
+    if (static_cast<size_type>(n) > capacity()) {
+      vector temp(n, value_type(), this->alloc_);
+      temp.end_ = std::uninitialized_copy(first, last, temp.begin()).base();
       swap(temp);
     } else {
       clear();
-      this->end_ = std::uninitialized_copy(first, last, begin());
+      this->end_ = std::uninitialized_copy(first, last, begin()).base();
     }
   }
 
@@ -227,35 +234,35 @@ class vector : protected VectorBase<T, Alloc> {
     typename iterator_traits<InputIterator>::difference_type n =
         std::distance<InputIterator>(first, last);
     if (position == end()) {
-      if (size() + n > capacity()) {
+      if (size() + static_cast<size_type>(n) > capacity()) {
         vector temp(size() + n);
-        temp.end_ =
-            std::uninitialized_copy(begin(), end(), temp.begin()).base();
+        std::uninitialized_copy(begin(), end(), temp.begin());
         swap(temp);
       }
-      for (iterator itr = first; itr != last; itr++) push_back(*itr);
+      for (InputIterator itr = first; itr != last; itr++) push_back(*itr);
     } else {
       if (size() + n > capacity()) {
         vector temp(size() + n);
-        iterator insert_pos =
+        InputIterator insert_pos =
             std::uninitialized_copy(begin(), position, temp.begin());
         std::uninitialized_copy(first, last, insert_pos);
-        temp.end_ = std::uninitialized_copy(position, end(), insert_pos + n);
+        std::uninitialized_copy(position, end(), insert_pos + n);
+        temp.end_ += n;
         swap(temp);
       } else {
-        this->end_ += n;
         for (reverse_iterator ritr = rbegin() - 1; ritr != position + n;
              ritr++) {
           this->alloc_.destroy(ritr);
           this->alloc_.construct(ritr, *(ritr + 1));
         }
-        for (iterator itr = position; first != last; first++) {
+        for (InputIterator itr = position; first != last; first++) {
           this->alloc_.destroy(itr.base());
           this->alloc_.construct(itr.base(), *first);
           itr++;
         }
       }
     }
+    this->end_ += n;
   }
 
  public:
@@ -519,6 +526,7 @@ class vector : protected VectorBase<T, Alloc> {
       }
       this->end_--;
     }
+    return position;
   }
 
   // range
@@ -535,6 +543,7 @@ class vector : protected VectorBase<T, Alloc> {
       move_cnt++;
     }
     this->end_ -= n;
+    return first;
   }
 
   void swap(vector& x) {
@@ -551,6 +560,7 @@ class vector : protected VectorBase<T, Alloc> {
   void clear(void) FT_NOEXCEPT_ {
     for (iterator itr = begin(); itr != end(); itr++)
       this->alloc_.destroy(itr.base());
+    this->end_ = this->begin_;
   }
 
   // SECTION : get_allocator

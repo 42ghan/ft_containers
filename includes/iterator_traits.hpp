@@ -19,6 +19,13 @@ struct bidirectional_iterator_tag : public forward_iterator_tag {};
 
 struct random_access_iterator_tag : public bidirectional_iterator_tag {};
 
+// is_random_access_iterator?
+// NOTE : it may be necessary to check if the passed pointer to VectorIterator
+// template parameter is random_access_iterable...
+// come back and think about this...
+// template <typename Iter> struct
+// is_random_access_iterator<
+
 template <typename Iter>
 struct iterator_traits {
   typedef typename Iter::difference_type difference_type;
@@ -77,21 +84,24 @@ class reverse_iterator
   typedef typename traits_type_::value_type value_type;
   typedef typename traits_type_::difference_type difference_type;
   typedef typename traits_type_::pointer pointer;
-  typedef typename traits_type_::pointer reference;
+  typedef typename traits_type_::reference reference;
 
   // Constructors
   reverse_iterator(void) : current_(Iterator()) {}
 
-  reverse_iterator(const iterator_type& itr) : current_(itr) {}
+  reverse_iterator(iterator_type itr) : current_(itr) {}
 
-  reverse_iterator(const reverse_iterator& original) { *this = original; }
+  // NOTE : come back and check if it is safe enough
+  template <typename T>
+  reverse_iterator(const reverse_iterator<T>& original)
+      : current_(original.base()) {}
 
   // Destructor
   ~reverse_iterator(void) {}
 
   // Copy Assignment operator overload
   reverse_iterator& operator=(const reverse_iterator& rhs) {
-    current_ = rhs.current_;
+    current_ = rhs.base();
     return *this;
   }
 
@@ -120,12 +130,12 @@ class reverse_iterator
   }
 
   // dereference & reference
-  reference operator*(void) const FT_NOEXCEPT_ { return *current_; }
+  reference operator*(void) const FT_NOEXCEPT_ { return *(current_ - 1); }
 
-  pointer operator->(void) const FT_NOEXCEPT_ { return current_; }
+  pointer operator->(void) const FT_NOEXCEPT_ { return &(operator*()); }
 
   // add or subtract difference
-  reverse_iterator& operator+=(difference_type n) const FT_NOEXCEPT_ {
+  reverse_iterator& operator+=(difference_type n) FT_NOEXCEPT_ {
     current_ -= n;
     return *this;
   }
@@ -134,7 +144,7 @@ class reverse_iterator
     return reverse_iterator(current_ - n);
   }
 
-  reverse_iterator& operator-=(difference_type n) const FT_NOEXCEPT_ {
+  reverse_iterator& operator-=(difference_type n) FT_NOEXCEPT_ {
     current_ += n;
     return *this;
   }
@@ -143,7 +153,7 @@ class reverse_iterator
     return reverse_iterator(current_ + n);
   }
 
-  const Iterator& base(void) const FT_NOEXCEPT_ { return current_; }
+  Iterator base(void) const FT_NOEXCEPT_ { return current_; }
 };
 
 template <typename IteratorL, typename IteratorR>
@@ -155,7 +165,7 @@ inline bool operator==(const reverse_iterator<IteratorL>& lhs,
 template <typename IteratorL, typename IteratorR>
 inline bool operator!=(const reverse_iterator<IteratorL>& lhs,
                        const reverse_iterator<IteratorR>& rhs) FT_NOEXCEPT_ {
-  return lhs.base() == rhs.base();
+  return lhs.base() != rhs.base();
 }
 
 template <typename IteratorL, typename IteratorR>
@@ -189,10 +199,10 @@ inline reverse_iterator<Iterator> operator+(
   return reverse_iterator<Iterator>(itr.base() - n);
 }
 
-template <typename Iterator>
-inline typename reverse_iterator<Iterator>::difference_type operator-(
-    const reverse_iterator<Iterator>& lhs,
-    const reverse_iterator<Iterator>& rhs) FT_NOEXCEPT_ {
+template <typename IteratorL, typename IteratorR>
+inline typename reverse_iterator<IteratorL>::difference_type operator-(
+    const reverse_iterator<IteratorL>& lhs,
+    const reverse_iterator<IteratorR>& rhs) FT_NOEXCEPT_ {
   return rhs.base() - lhs.base();
 }
 }  // namespace ft
