@@ -207,12 +207,7 @@ class vector : protected VectorBase<T, Alloc> {
   // NOTE - check why using / this-> is necessary
 
   template <typename InputIterator>
-  void RangeInitialize_(
-      typename enable_if<enable_if<!is_integral<InputIterator>::value,
-                                   true_type>::type::value &&
-                             is_input_iterator<InputIterator>::value,
-                         InputIterator>::type first,
-      InputIterator last) {
+  void RangeInitialize_(InputIterator first, InputIterator last) {
     size_type n =
         static_cast<size_type>(std::distance<InputIterator>(first, last));
     this->InitPointers_(n);
@@ -220,12 +215,7 @@ class vector : protected VectorBase<T, Alloc> {
   }
 
   template <typename InputIterator>
-  void RangeAssign_(
-      typename enable_if<enable_if<!is_integral<InputIterator>::value,
-                                   true_type>::type::value &&
-                             is_input_iterator<InputIterator>::value,
-                         InputIterator>::type first,
-      InputIterator last) {
+  void RangeAssign_(InputIterator first, InputIterator last) {
     size_type n =
         static_cast<size_type>(std::distance<InputIterator>(first, last));
     if (n > capacity()) {
@@ -239,13 +229,7 @@ class vector : protected VectorBase<T, Alloc> {
   }
 
   template <typename iterator, typename InputIterator>
-  void RangeInsert_(
-      iterator pos,
-      typename enable_if<enable_if<!is_integral<InputIterator>::value,
-                                   true_type>::type::value &&
-                             is_input_iterator<InputIterator>::value,
-                         InputIterator>::type first,
-      InputIterator last) {
+  void RangeInsert_(iterator pos, InputIterator first, InputIterator last) {
     size_type n =
         static_cast<size_type>(std::distance<InputIterator>(first, last));
     if (pos == end()) {
@@ -311,9 +295,7 @@ class vector : protected VectorBase<T, Alloc> {
   // #3 range : construct a container that will contain the same values in the
   // range [first, last)  template <typename InputIterator>
   template <typename InputIterator>
-  vector(typename enable_if<enable_if<!is_integral<InputIterator>::value,
-                                      true_type>::type::value &&
-                                is_input_iterator<InputIterator>::value,
+  vector(typename enable_if<is_input_iterator<InputIterator>::value,
                             InputIterator>::type first,
          InputIterator last, const allocator_type& alloc = allocator_type())
       : Base_(alloc) {
@@ -441,9 +423,7 @@ class vector : protected VectorBase<T, Alloc> {
 
   // range
   template <typename InputIterator>
-  void assign(typename enable_if<enable_if<!is_integral<InputIterator>::value,
-                                           true_type>::type::value &&
-                                     is_input_iterator<InputIterator>::value,
+  void assign(typename enable_if<is_input_iterator<InputIterator>::value,
                                  InputIterator>::type first,
               InputIterator last) {
     RangeAssign_(first, last);
@@ -532,9 +512,7 @@ class vector : protected VectorBase<T, Alloc> {
   // range
   template <typename InputIterator>
   void insert(iterator position,
-              typename enable_if<enable_if<!is_integral<InputIterator>::value,
-                                           true_type>::type::value &&
-                                     is_input_iterator<InputIterator>::value,
+              typename enable_if<is_input_iterator<InputIterator>::value,
                                  InputIterator>::type first,
               InputIterator last) {
     RangeInsert_(position, first, last);

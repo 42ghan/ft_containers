@@ -68,34 +68,39 @@ struct iterator {
 };
 
 // is... iterator type?
-template <typename Iter>
+template <typename Iter,
+          typename enable_if<!is_integral<Iter>::value, bool>::type = true>
 struct is_random_access_iterator
     : public integral_constant<
           bool, is_same<typename iterator_traits<Iter>::iterator_category,
                         random_access_iterator_tag>::value> {};
 
-template <typename Iter>
+template <typename Iter,
+          typename enable_if<!is_integral<Iter>::value, bool>::type = true>
 struct is_bidirectional_iterator
     : public integral_constant<
           bool, is_random_access_iterator<Iter>::value ||
                     is_same<typename iterator_traits<Iter>::iterator_category,
                             bidirectional_iterator_tag>::value> {};
 
-template <typename Iter>
+template <typename Iter,
+          typename enable_if<!is_integral<Iter>::value, bool>::type = true>
 struct is_forward_iterator
     : public integral_constant<
           bool, is_bidirectional_iterator<Iter>::value ||
                     is_same<typename iterator_traits<Iter>::iterator_category,
                             forward_iterator_tag>::value> {};
 
-template <typename Iter>
+template <typename Iter,
+          typename enable_if<!is_integral<Iter>::value, bool>::type = true>
 struct is_input_iterator
     : public integral_constant<
           bool, is_forward_iterator<Iter>::value ||
                     is_same<typename iterator_traits<Iter>::iterator_category,
                             input_iterator_tag>::value> {};
 
-template <typename Iter>
+template <typename Iter,
+          typename enable_if<!is_integral<Iter>::value, bool>::type = true>
 struct is_output_iterator
     : public integral_constant<
           bool, is_same<typename iterator_traits<Iter>::iterator_category,
