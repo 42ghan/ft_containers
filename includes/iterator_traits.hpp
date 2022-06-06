@@ -8,6 +8,8 @@
 #ifndef FT_CONTAINERS_INCLUDES_ITERATOR_TRAITS_HPP_
 #define FT_CONTAINERS_INCLUDES_ITERATOR_TRAITS_HPP_
 
+#include "type_traits.hpp"
+
 namespace ft {
 
 #ifdef _LIBCPP_ITERATOR
@@ -23,12 +25,6 @@ struct forward_iterator_tag : public input_iterator_tag {};
 struct bidirectional_iterator_tag : public forward_iterator_tag {};
 struct random_access_iterator_tag : public bidirectional_iterator_tag {};
 #endif
-
-// is_random_access_iterator?
-// NOTE : it may be necessary to check if the passed pointer to
-// VectorIterator template parameter is random_access_iterable... come back
-// and think about this... template <typename Iter> struct
-// is_random_access_iterator<
 
 template <typename Iter>
 struct iterator_traits {
@@ -71,6 +67,41 @@ struct iterator {
   typedef Reference reference;
 };
 
+// is... iterator type?
+template <typename Iter>
+struct is_random_access_iterator
+    : public integral_constant<
+          bool, is_same<typename iterator_traits<Iter>::iterator_category,
+                        random_access_iterator_tag>::value> {};
+
+template <typename Iter>
+struct is_bidirectional_iterator
+    : public integral_constant<
+          bool, is_random_access_iterator<Iter>::value ||
+                    is_same<typename iterator_traits<Iter>::iterator_category,
+                            bidirectional_iterator_tag>::value> {};
+
+template <typename Iter>
+struct is_forward_iterator
+    : public integral_constant<
+          bool, is_bidirectional_iterator<Iter>::value ||
+                    is_same<typename iterator_traits<Iter>::iterator_category,
+                            forward_iterator_tag>::value> {};
+
+template <typename Iter>
+struct is_input_iterator
+    : public integral_constant<
+          bool, is_forward_iterator<Iter>::value ||
+                    is_same<typename iterator_traits<Iter>::iterator_category,
+                            input_iterator_tag>::value> {};
+
+template <typename Iter>
+struct is_output_iterator
+    : public integral_constant<
+          bool, is_same<typename iterator_traits<Iter>::iterator_category,
+                        output_iterator_tag>::value> {};
+
+// reverse_iterator
 template <typename Iterator>
 class reverse_iterator
     : public iterator<typename iterator_traits<Iterator>::iterator_category,
