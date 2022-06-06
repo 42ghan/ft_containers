@@ -9,21 +9,25 @@
 #define FT_CONTAINERS_INCLUDES_ITERATOR_TRAITS_HPP_
 
 namespace ft {
+
+#ifdef _LIBCPP_ITERATOR
+typedef std::input_iterator_tag input_iterator_tag;
+typedef std::output_iterator_tag output_iterator_tag;
+typedef std::forward_iterator_tag forward_iterator_tag;
+typedef std::bidirectional_iterator_tag bidirectional_iterator_tag;
+typedef std::random_access_iterator_tag random_access_iterator_tag;
+#else
 struct input_iterator_tag {};
-
 struct output_iterator_tag {};
-
 struct forward_iterator_tag : public input_iterator_tag {};
-
 struct bidirectional_iterator_tag : public forward_iterator_tag {};
-
 struct random_access_iterator_tag : public bidirectional_iterator_tag {};
+#endif
 
 // is_random_access_iterator?
-// NOTE : it may be necessary to check if the passed pointer to VectorIterator
-// template parameter is random_access_iterable...
-// come back and think about this...
-// template <typename Iter> struct
+// NOTE : it may be necessary to check if the passed pointer to
+// VectorIterator template parameter is random_access_iterable... come back
+// and think about this... template <typename Iter> struct
 // is_random_access_iterator<
 
 template <typename Iter>

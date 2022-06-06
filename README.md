@@ -196,6 +196,29 @@ vector(_InputIterator __first,
                           _InputIterator>::type __last);
 ```
 
+### `is_base_of`
+
+- `is_base_of<Base, Derived>` is a template class that is used to determine whether the `Base` type is the base class of the `Derived` class. It inherits `integral_constant` and its value is set to either true/false depending on inheritance relationship between `Base` and `Dervied`.
+- In order to distinguish whether the passed argument's type to `InputIterator` parameter of `vector`'s member functions is indeed a kind of `InputIterator`, implementation of DIY `is_base_of` was tried since it is not supported in C++98 standard.
+- Using the concept of [overload resolution](https://en.cppreference.com/w/cpp/language/overload_resolution) (conversion to `Base *` comes before `void *`) was attempted (code below) as [is_base_of implementation on MODERNES C++](https://www.modernescpp.com/index.php/the-type-traits-library-std-is-base-of) suggests, however, without using `decltype()` keyword (C++11), the code became way too complicated.
+
+```C++
+template <typename Base>
+true_type test_base_and_derived_conversion(Base *);
+
+template <typename>
+false_type test_base_and_derived_conversion(void *);
+
+template <typename Base, typename Derived>
+struct is_base_of
+    : public integral_constant<bool,
+                               decltype(test_base_and_derived_conversion<
+                                        typename remove_cv<Base>::type>(
+                                   static_cast<Derived *>(NULL)))::value> {};
+```
+
+- Therefore, using unique `is_{type of iterator}` classes was used as a filter for `InputIterator`.
+
 ## Vector
 
 ### Features

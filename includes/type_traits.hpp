@@ -75,6 +75,54 @@ struct is_integral<unsigned int> : public true_type {};
 template <>
 struct is_integral<unsigned long int> : public true_type {};
 
+// is_same
+template <typename, typename>
+struct is_same : public false_type {};
+
+template <typename T>
+struct is_same<T, T> : public true_type {};
+
+// is_void
+template <typename>
+struct is_void : public false_type {};
+
+template <>
+struct is_void<void> : public true_type {};
+
+// remove_cv
+template <typename T>
+struct remove_cv {
+  typedef T type;
+};
+
+template <typename T>
+struct remove_cv<const T> {
+  typedef T type;
+};
+
+template <typename T>
+struct remove_cv<volatile T> {
+  typedef T type;
+};
+
+template <typename T>
+struct remove_cv<const volatile T> {
+  typedef T type;
+};
+
+// is_base_of
+template <typename Base>
+true_type test_base_and_derived_conversion(Base *);
+
+template <typename>
+false_type test_base_and_derived_conversion(void *);
+
+template <typename Base, typename Derived>
+struct is_base_of
+    : public integral_constant<bool,
+                               decltype(test_base_and_derived_conversion<
+                                        typename remove_cv<Base>::type>(
+                                   static_cast<Derived *>(NULL)))::value> {};
 }  // namespace ft
 
 #endif

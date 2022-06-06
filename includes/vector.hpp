@@ -207,7 +207,14 @@ class vector : protected VectorBase<T, Alloc> {
   // NOTE - check why using / this-> is necessary
 
   template <typename InputIterator>
-  void RangeInitialize_(InputIterator first, InputIterator last) {
+  void RangeInitialize_(
+      typename enable_if<
+          !is_integral<InputIterator>::value &&
+              is_base_of<input_iterator_tag,
+                         typename iterator_traits<
+                             InputIterator>::iterator_category>::value,
+          InputIterator>::type first,
+      InputIterator last) {
     size_type n =
         static_cast<size_type>(std::distance<InputIterator>(first, last));
     this->InitPointers_(n);
