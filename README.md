@@ -446,6 +446,91 @@ void clear(void) FT_NOEXCEPT_;
 
 ## Stack
 
+### Features
+
+```C++
+template <typename T, typename Container = vector<T> >
+class stack;
+```
+
+- `stack` is a container adaptor that operates in a LIFO(Last In First Out) context. Elements are insereted and extracted via one end of the container.
+- The underlying container must support:
+  - `empty`
+  - `size`
+  - `back`
+  - `push_back`
+  - `pop_back`
+- Among STD Containers, `vector`, `deque`, and `list` meet these requirements.
+- In STD Library version, `deque` is used as the underlying container of `stack`. However, in this implementation, `ft::stack` is utilized.
+
+### Member Types
+
+```C++
+typedef Container container_type;
+typedef typename Container::value_type value_type;
+typedef typename Container::size_type size_type;
+typedef typename Container::reference reference;
+typedef typename Container::const_reference const_reference;
+```
+
+### Member Functions
+
+- All member functions of `stack`, except for the constructor, execute their operations by utilizing its underlying containers' member functions. Therefore, complexity and exception safety of the member funtions are the same as them of the underlying container's member functions.
+
+```C++
+// note that `c` is the underlying container object
+
+// top : returns a reference to the top element (last-in)
+reference top(void) { return c.back(); }
+const_reference top(void) const { return c.back(); }
+
+// empty : checks if the stack is empty
+bool empty() const { return c.empty(); }
+
+// size : returns the stack's size
+size_type size() const { return c.size(); }
+
+// push : adds value to the top
+// pop : extracts current top element
+void push(const value_type& value) { c.push_back(value); }
+void pop(void) { c.pop_back(); }
+```
+
+- Constructor instantiates its underlying container. Implicit implementations of copy constructor, assignment operator overload, destructor are used.
+
+```C++
+  explicit stack(const container_type& cont = container_type()) : c(cont) {}
+```
+
+### Non-Member Functions (Relation Operators)
+
+- Comparison of two different `stack` objects are performed by calling the same relation operator overload of the underlying container object.
+- In this implementation, only `operator==` and `operator<` of the underlying container object are called. Since they are comparing the protected container object `c`, `friend` declaration of `operator==` and `operator<` are used inside the class.
+
+```C++
+template <typename T, typename Container>
+bool operator==(const stack<T, Container>& lhs,
+                const stack<T, Container>& rhs);
+
+template <typename T, typename Container>
+bool operator!=(const stack<T, Container>& lhs,
+                const stack<T, Container>& rhs);
+
+template <typename T, typename Container>
+bool operator<(const stack<T, Container>& lhs, const stack<T, Container>& rhs);
+
+template <typename T, typename Container>
+bool operator<=(const stack<T, Container>& lhs,
+                const stack<T, Container>& rhs);
+
+template <typename T, typename Container>
+bool operator>(const stack<T, Container>& lhs, const stack<T, Container>& rhs);
+
+template <typename T, typename Container>
+bool operator>=(const stack<T, Container>& lhs,
+                const stack<T, Container>& rhs);
+```
+
 ## Map
 
 ## Set (Red Black Tree)

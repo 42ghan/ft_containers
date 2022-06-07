@@ -1,12 +1,10 @@
 #include <iostream>
-
-struct A {
-  //   typedef int number;
-  typedef char character;
-  typedef double point;
-};
+#include <utility>
+#include <vector>
 
 int main(void) {
-  A a;
-  std::cout << sizeof(A::number) << "\n";
+  std::pair<char, std::vector<int> > pair_a('a', std::vector<int>(15));
+  std::pair<int, char> pair_b(pair_a);
+  std::cout << pair_b.first << " " << pair_b.second << "\n";
+  //   std::cout << sizeof(A::number) << "\n";
 }
