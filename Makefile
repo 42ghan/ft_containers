@@ -12,7 +12,13 @@ NAME		=	ft_containers
 
 SRCS		=	srcs/main.cpp\
 
-OBJS		=	$(SRCS:%.cpp=%.o)
+TEST_SRCS	=	srcs/test.cpp\
+
+ifdef TEST
+	OBJS		=	$(TEST_SRCS:%.cpp=%.o)
+else
+	OBJS		=	$(SRCS:%.cpp=%.o)
+endif
 
 INCL_PATH	=	./includes
 
@@ -56,7 +62,7 @@ $(NAME)		:	$(OBJS)
 
 .PHONY		:	clean
 clean		:
-				@rm -f $(OBJS)
+				@rm -f $(OBJS) srcs/test.o
 				@echo $(L_RED) Remove OBJ files 👋 $(RESET)
 
 .PHONY		:	fclean
@@ -78,3 +84,8 @@ debug		:
 leaks		:
 				@make LEAKS=1
 				@echo $(CUT)$(L_BLUE)$(BOLD) Is there Leaks? 🚰$(RESET)
+
+.PHONY		:	test
+test		:
+				@make TEST=1
+				@echo $(CUT)$(L_BLUE)$(BOLD) Run tests! ✅$(RESET)

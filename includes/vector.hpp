@@ -204,10 +204,21 @@ template <typename T, typename Alloc = std::allocator<T> >
 class vector : protected VectorBase<T, Alloc> {
  private:
   typedef VectorBase<T, Alloc> Base_;
-  // NOTE - check why using / this-> is necessary
 
   template <typename InputIterator>
-  void RangeInitialize_(InputIterator first, InputIterator last) {
+  void RangeInitialize_(
+      InputIterator first,
+      typename enable_if<!is_forward_iterator<InputIterator>::value,
+                         InputIterator>::type last) {
+    this->InitPointers_(sizeof(value_type) * 16);
+    for (; first != last; first++) push_back(*first);
+  }
+
+  template <typename InputIterator>
+  void RangeInitialize_(
+      InputIterator first,
+      typename enable_if<is_forward_iterator<InputIterator>::value,
+                         InputIterator>::type last) {
     size_type n =
         static_cast<size_type>(std::distance<InputIterator>(first, last));
     this->InitPointers_(n);
@@ -215,7 +226,19 @@ class vector : protected VectorBase<T, Alloc> {
   }
 
   template <typename InputIterator>
-  void RangeAssign_(InputIterator first, InputIterator last) {
+  void RangeAssign_(
+      InputIterator first,
+      typename enable_if<!is_forward_iterator<InputIterator>::value,
+                         InputIterator>::type last) {
+    clear();
+    for (; first != last; first++) push_back(*first);
+  }
+
+  template <typename InputIterator>
+  void RangeAssign_(
+      InputIterator first,
+      typename enable_if<is_forward_iterator<InputIterator>::value,
+                         InputIterator>::type last) {
     size_type n =
         static_cast<size_type>(std::distance<InputIterator>(first, last));
     if (n > capacity()) {
@@ -229,37 +252,51 @@ class vector : protected VectorBase<T, Alloc> {
   }
 
   template <typename iterator, typename InputIterator>
-  void RangeInsert_(iterator pos, InputIterator first, InputIterator last) {
+  void RangeInsert_(
+      iterator pos, InputIterator first,
+      typename enable_if<!is_forward_iterator<InputIterator>::value,
+                         InputIterator>::type last) {
+    if (pos == end())
+      for (InputIterator itr = first; itr != last; itr++) push_back(*itr);
+    else {
+      vector temp(pos, end(), this->alloc_);
+      erase(pos, end());
+      for (InputIterator itr = first; itr != last; itr++) push_back(*itr);
+      for (iterator itr = temp.begin(); itr != temp.end(); itr++)
+        push_back(*itr);
+    }
+  }
+
+  template <typename iterator, typename InputIterator>
+  void RangeInsert_(
+      iterator pos, InputIterator first,
+      typename enable_if<is_forward_iterator<InputIterator>::value,
+                         InputIterator>::type last) {
     size_type n =
         static_cast<size_type>(std::distance<InputIterator>(first, last));
     if (pos == end()) {
       if (size() + n > capacity()) {
-        vector temp(size() + n);
-        std::uninitialized_copy(begin(), end(), temp.begin());
-        for (size_type i = 0; i < n; i++) temp.pop_back();
+        vector temp(size() + n, value_type(), this->alloc_);
+        temp.clear();
+        temp.end_ =
+            std::uninitialized_copy(begin(), end(), temp.begin()).base();
         swap(temp);
       }
       for (InputIterator itr = first; itr != last; itr++) push_back(*itr);
     } else {
-      size_type distance_to_pos = pos - begin();
       if (size() + n > capacity()) {
-        vector temp(size() + n);
-        std::uninitialized_copy(begin(), pos, temp.begin());
-        std::uninitialized_copy(first, last, temp.begin() + distance_to_pos);
-        std::uninitialized_copy(pos, end(), temp.begin() + distance_to_pos + n);
+        vector temp(size() + n, value_type(), this->alloc_);
+        temp.assign(begin(), pos);
+        for (InputIterator itr = first; itr != last; itr++)
+          temp.push_back(*itr);
+        for (iterator itr = pos; itr != end(); itr++) temp.push_back(*itr);
         swap(temp);
       } else {
-        for (reverse_iterator ritr = rbegin() - 1; ritr.base() != (pos - n);
-             ritr++) {
-          this->alloc_.destroy(ritr.base().base());
-          this->alloc_.construct(ritr.base().base(), *(ritr + 1));
-        }
-        for (iterator itr = pos; first != last; first++) {
-          this->alloc_.destroy(itr.base());
-          this->alloc_.construct(itr.base(), *first);
-          itr++;
-        }
-        this->end_ += n;
+        vector temp(pos, end(), this->alloc_);
+        erase(pos, end());
+        for (InputIterator itr = first; itr != last; itr++) push_back(*itr);
+        for (iterator itr = temp.begin(); itr != temp.end(); itr++)
+          push_back(*itr);
       }
     }
   }
@@ -295,9 +332,10 @@ class vector : protected VectorBase<T, Alloc> {
   // #3 range : construct a container that will contain the same values in the
   // range [first, last)  template <typename InputIterator>
   template <typename InputIterator>
-  vector(typename enable_if<is_input_iterator<InputIterator>::value,
-                            InputIterator>::type first,
-         InputIterator last, const allocator_type& alloc = allocator_type())
+  vector(InputIterator first,
+         typename enable_if<is_input_iterator<InputIterator>::value,
+                            InputIterator>::type last,
+         const allocator_type& alloc = allocator_type())
       : Base_(alloc) {
     RangeInitialize_(first, last);
   }
@@ -423,9 +461,9 @@ class vector : protected VectorBase<T, Alloc> {
 
   // range
   template <typename InputIterator>
-  void assign(typename enable_if<is_input_iterator<InputIterator>::value,
-                                 InputIterator>::type first,
-              InputIterator last) {
+  void assign(InputIterator first,
+              typename enable_if<is_input_iterator<InputIterator>::value,
+                                 InputIterator>::type last) {
     RangeAssign_(first, last);
   }
 
@@ -434,9 +472,8 @@ class vector : protected VectorBase<T, Alloc> {
       this->alloc_.construct(this->end_, val);
       ++this->end_;
     } else {
-      vector temp(size() + 1);
-      std::uninitialized_copy(begin(), end(), temp.begin());
-      temp.end_ = temp.begin_ + difference_type(end() - begin());
+      vector temp(size() + 1, value_type(), this->alloc_);
+      temp.assign(begin(), end());
       this->alloc_.construct(temp.end_, val);
       temp.end_++;
       swap(temp);
@@ -450,51 +487,49 @@ class vector : protected VectorBase<T, Alloc> {
 
   // single element
   iterator insert(iterator position, const value_type& val) {
+    iterator insert_pos = position;
     if (position == end()) {
       push_back(val);
-      return end() - 1;
+      insert_pos = end() - 1;
     } else {
       if (size() + 1 > capacity()) {
-        vector temp(size() + 1);
-        iterator insert_pos =
-            std::uninitialized_copy(begin(), position, temp.begin());
-        this->alloc_.destroy(insert_pos.base());
-        this->alloc_.construct(insert_pos.base(), val);
-        std::uninitialized_copy(position, end(), insert_pos + 1);
+        vector temp(size() + 1, value_type(), this->alloc_);
+        temp.assign(begin(), position);
+        insert_pos = temp.end();
+        temp.push_back(val);
+        temp.insert(temp.end(), position, end());
         swap(temp);
-        return insert_pos;
       } else {
         for (reverse_iterator ritr = rbegin() - 1; ritr.base() != position;
              ritr++) {
-          if (ritr != rbegin()) this->alloc_.destroy(ritr.base().base());
+          this->alloc_.destroy(ritr.base().base());
           this->alloc_.construct(ritr.base().base(), *(ritr + 1));
         }
         this->alloc_.construct(position.base(), val);
         this->end_++;
-        return position;
       }
     }
+    return insert_pos;
   }
 
   // fill
   void insert(iterator position, size_type n, const value_type& val) {
     if (position == end()) {
       if (size() + n > capacity()) {
-        vector temp(size() + n);
-        std::uninitialized_copy(begin(), end(), temp.begin());
-        for (size_type i = 0; i < n; i++) temp.pop_back();
+        vector temp(size() + n, value_type(), this->alloc_);
+        temp.assign(begin(), end());
         swap(temp);
       }
       for (size_type cnt = 0; cnt < n; cnt++) push_back(val);
     } else {
       if (size() + n > capacity()) {
-        vector temp(size() + n);
-        iterator insert_pos =
-            std::uninitialized_copy(begin(), position, temp.begin());
-        std::uninitialized_fill_n(insert_pos, n, val);
-        std::uninitialized_copy(position, end(), insert_pos + n);
+        vector temp(size() + n, value_type(), this->alloc_);
+        temp.assign(begin(), position);
+        temp.insert(temp.end(), n, val);
+        temp.insert(temp.end(), position, end());
         swap(temp);
       } else {
+        this->end_ += n;
         for (reverse_iterator ritr = rbegin() - 1; ritr.base() != position + n;
              ritr++) {
           this->alloc_.destroy(ritr.base().base());
@@ -504,17 +539,15 @@ class vector : protected VectorBase<T, Alloc> {
           this->alloc_.destroy(itr.base());
           this->alloc_.construct(itr.base(), val);
         }
-        this->end_ += n;
       }
     }
   }
 
   // range
   template <typename InputIterator>
-  void insert(iterator position,
+  void insert(iterator position, InputIterator first,
               typename enable_if<is_input_iterator<InputIterator>::value,
-                                 InputIterator>::type first,
-              InputIterator last) {
+                                 InputIterator>::type last) {
     RangeInsert_(position, first, last);
   }
 
