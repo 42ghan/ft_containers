@@ -8,4 +8,6 @@
 #ifndef FT_CONTAINERS_INCLUDES_MAP_HPP_
 #define FT_CONTAINERS_INCLUDES_MAP_HPP_
 
+namespace ft {}
+
 #endif

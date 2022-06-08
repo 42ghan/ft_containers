@@ -551,20 +551,20 @@ bool operator>=(const stack<T, Container>& lhs,
 
 ### STL Containers
 
-- [ ] vector
+- [x] vector
 - [ ] map
-- [ ] stack (DIY vector class as default underlying container)
+- [x] stack (DIY vector class as default underlying container)
 - [ ] set (Red-Black Tree)
 
 ### iterators & algorithms
 
-- [ ] iterators_traits
-- [ ] reverse_iterator
-- [ ] enable_if
-- [ ] is_integral
-- [ ] equal, lexicographical_compare
-- [ ] std::pair
-- [ ] std::make_pair
+- [x] iterators_traits
+- [x] reverse_iterator
+- [x] enable_if
+- [x] is_integral
+- [x] equal, lexicographical_compare
+- [x] std::pair
+- [x] std::make_pair
 
 ## References
 
