@@ -94,7 +94,7 @@ class RbTreeIterator {
   // TODO...
 };
 
-template <typename Iterator>
+// template <typename Iterator>
 
 template <typename Key, typename Compare = std::less<Key>,
           typename Alloc = std::allocator<Key> >
