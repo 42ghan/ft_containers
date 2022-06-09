@@ -49,13 +49,12 @@ class VectorIterator {
   // Destructor
   ~VectorIterator(void) {}
 
-  // Copy Assignment operator overload
-
   template <typename U>
   operator VectorIterator<const U*>(void) {
     return (VectorIterator<const U*>(base()));
   }
 
+  // Copy Assignment operator overload
   VectorIterator& operator=(const VectorIterator& rhs) {
     current_ = rhs.current_;
     return *this;
