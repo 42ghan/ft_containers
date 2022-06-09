@@ -83,7 +83,6 @@ class VectorIterator {
   reference operator[](difference_type n) FT_NOEXCEPT_ { return current_[n]; }
 
   // dereference & reference
-
   reference operator*(void) const FT_NOEXCEPT_ { return *current_; }
 
   pointer operator->(void) const FT_NOEXCEPT_ { return current_; }
