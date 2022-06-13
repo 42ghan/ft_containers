@@ -15,6 +15,7 @@ DIY C++ containers implementation (C++98)
     - [Categories](#categories)
   - [Exception Safety](#exception-safety)
   - [SFINAE & `enable_if`](#sfinae--enableif)
+  - [Red Black Tree](#red-black-tree)
 - [Vector](#vector)
 - [Stack](#stack)
 - [Map](#stack)
@@ -218,6 +219,12 @@ struct is_base_of
 ```
 
 - Therefore, using unique `is_{type of iterator}` classes was used as a filter for `InputIterator`.
+
+### Red Black Tree
+
+#### Insertion Cases
+
+#### Deletion Cases
 
 ## Vector
 
