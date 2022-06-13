@@ -20,6 +20,8 @@ namespace ft {
 
 enum RbTreeColor { kBlack = true, kRed = false };
 
+enum RbTreeLeftOrRight { kLeft = 0, kRight };
+
 template <typename Key, typename Alloc = std::allocator<Key> >
 struct RbTreeNode {
   typedef Alloc AllocType;
@@ -194,6 +196,69 @@ class RbTree {
     return node;
   }
 
+  // Delete no child
+  void DeleteNoChild_(NodePtr parent, NodePtr target) {
+    if (parent->left == target) {
+      delete target;
+      parent->left = NULL;
+    } else {
+      delete target;
+      parent->right = NULL;
+    }
+  }
+
+  // Delete one child
+  void DeleteOneChild_(NodePtr target, int& replacement_color) {
+    if (target->left == NULL) {
+      target->key = target->right->key;
+      replacement_color = target->right->color;
+      delete target->right;
+      target->right = NULL;
+    } else {
+      target->key = target->left->key;
+      replacement_color = target->left->color;
+      delete target->left;
+      target->left = NULL;
+    }
+  }
+
+  // Delete two children
+  void DeleteTwoChildrenNode_(NodePtr target) {
+    NodePtr min_node = FindMinNode_(target->right);
+    NodePtr min_parent = min_node->parent;
+    target->key = min_node->key;
+    delete min_node;
+    min_parent->left = NULL;
+  }
+
+  // Balance After Deletion
+  // https://www.geeksforgeeks.org/red-black-tree-set-3-delete-2/
+  void BalanceAfterDeletion_(NodePtr target, NodePtr parent) {
+    NodePtr sibling = (parent->left == target) ? parent->right : parent->left;
+    if (sibling->color == kBlack) {
+      if (parent->left == sibling) {
+        if (sibling->left && sibling->left->color == kRed) {  // LL Case
+          RightRotate_(parent);
+          sibling->left->color = kBlack;
+        } else if (sibling->right &&
+                   sibling->right->color == kRed) {  // LR Case
+          LeftRotate_(sibling);
+          RightRotate_(parent);
+          sibling->parent->color = kBlack;
+        }
+      } else {
+        if (sibling->right && sibling->right->color == kRed) {  // RR Case
+          LeftRotate_(parent);
+          sibling->right->color = kBlack;
+        } else if (sibling->left && sibling->left->color == kRed) {  // RL Case
+          RightRotate_(sibling);
+          LeftRotate_(parent);
+          sibling->parent->color = kBlack;
+        }
+      }
+    }
+  }
+
  public:
   // Constructors
   RbTree(const AllocType& alloc = AllocType())
@@ -221,7 +286,6 @@ class RbTree {
   }
 
   // insert
-  // NOTE : will need multiple case specialization
   // TODO : rotation for RB pattern
   void insert(const KeyType& key_value, NodePtr node = root_) {
     if (node == NULL && node == root_) {
@@ -257,45 +321,20 @@ class RbTree {
 
     if (target == NULL) return false;
     original_color = target->color;
-    if (target->left == NULL && target->right == NULL) {
+    if (target->left == NULL || target->right == NULL) {
       NodePtr parent = target->parent;
-      if (parent->left == target) {
-        delete target;
-        parent->left = NULL;
-      } else {
-        delete target;
-        parent->right = NULL;
-      }
-      target = parent;
-      original_color = target->color;
-      replacement_color = kBlack;
-    } else if (target->left == NULL) {
-      target->key = target->right->key;
-      replacement_color = target->right->color;
-      delete target->right;
-      target->right = NULL;
-    } else if (target->right == NULL) {
-      target->key = target->left->key;
-      replacement_color = target->left->color;
-      delete target->left;
-      target->left = NULL;
-    } else {
-      NodePtr min_node = FindMinNode_(target->right);
-      NodePtr min_parent = min_node->parent;
-      target->key = min_node->key;
-      delete min_node;
-      min_parent->left = NULL;
-      return true;
-    }
-    if (original_color == kRed || replacement_color == kRed) {
-      target->color = kBlack;
-    } else {
-      if (target != root_) {
-        if (target->parent->left != target) {
-        }
-      }
-    }
-    // TODO : rotate to keep RB rule
+      if (target->left == NULL && target->right == NULL) {
+        DeleteNoChild_(parent, target);
+        original_color = target->color;
+        replacement_color = kBlack;
+      } else
+        DeleteOneChild_(target, replacement_color);
+      if (original_color == kRed || replacement_color == kRed)
+        target->color = kBlack;
+      else
+        BalanceAfterDeletion_(target, parent);
+    } else
+      DeleteTwoChildrenNode_(target);
   }
 
   // left rotate
