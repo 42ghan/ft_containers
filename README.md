@@ -220,7 +220,9 @@ struct is_base_of
 
 - Therefore, using unique `is_{type of iterator}` classes was used as a filter for `InputIterator`.
 
-### Red Black Tree
+### Red-Black Tree
+
+- Red-Black Tree is a form of Binary Search Tree, which keeps the tree structure balanced
 
 #### Insertion Cases
 
@@ -236,7 +238,7 @@ struct is_base_of
 
 ### Why is there `__vector_base` class?
 
-- In STL Containers `std::vector` implementation, `vector_base` class functions as an [RAII](#raii) (exception-safety technique) wrapper.
+- In STL Containers `std::vector` implementation, `vector_base` class functions as a [RAII](#raii) (exception-safety technique) wrapper.
 - Aquisition of resources occur in the `vector_base` wrapper's instantiation and the resources are released when the wrapper is destroyed (after the instance of the inherited class is destroyed), so the `std::vector` instance can safely access the resources during its lifetime.
 
 ### Implementation of container specific iterator
@@ -583,5 +585,7 @@ bool operator>=(const stack<T, Container>& lhs,
 - [What is C++ metafunction and how to use it?
   by Sorush Khajepor](https://iamsorush.com/posts/cpp-meta-function/)
 - [Bjarne Stroustrup (2000). The C++ programming language. Boston: Addison-Wesley.](https://www.stroustrup.com/3rd_safe.pdf)
+
+- [Red-Black Tree study resource](https://edutechlearners.com/download/Introduction_to_algorithms-3rd%20Edition.pdf)
 
 ‌

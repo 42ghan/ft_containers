@@ -323,8 +323,9 @@ class RbTree {
     NodePtr cursor = root_;
     while (cursor != NULL) {
       trailing = cursor;
-      if (key_value == cursor->key) return;
-      cursor = (key_value < cursor->key) ? cursor->left : cursor->right;
+      if (!comp_(key_value, cursor->key) && !comp(cursor->key, key_value))
+        return;
+      cursor = comp_(key_value, cursor->key) ? cursor->left : cursor->right;
     }
     NodePtr node = alloc_.allocate(1);
     alloc_.construct(node, Node(key_value));
@@ -332,7 +333,7 @@ class RbTree {
     if (trailing == NULL) {
       node->color = kBlack;
       root_ = node;
-    } else if (node->key < trailing->key)
+    } else if (comp(node->key, trailing->key))
       trailing->left = node;
     else
       trailing->right = node;
