@@ -8,6 +8,8 @@
 #ifndef FT_CONTAINERS_INCLUDES_ITERATOR_TRAITS_HPP_
 #define FT_CONTAINERS_INCLUDES_ITERATOR_TRAITS_HPP_
 
+#define FT_NOEXCEPT_ throw()
+
 #include "type_traits.hpp"
 
 namespace ft {
