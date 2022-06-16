@@ -34,6 +34,7 @@ class map {
 
  private:
   typedef RbTree<value_type, key_compare, allocator_type> Base_;
+
   key_compare comp_;
   allocator_type alloc_;
   Base_ tree_;
@@ -64,8 +65,14 @@ class map {
   }
 
   // #3 copy constructor
+  map(const map& original)
+      : comp(original.comp_),
+        alloc_(original.alloc_),
+        tree_(Base_(original.tree_)) {}
 
   // Destructor
+  ~map(void) { ~tree_; }
+
   // Assignment operator overload
   // Iterators
   // Capacity
