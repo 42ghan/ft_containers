@@ -110,6 +110,12 @@ struct remove_cv<const volatile T> {
   typedef T type;
 };
 
+template <class T>
+struct is_const : false_type {};
+
+template <class T>
+struct is_const<const T> : true_type {};
+
 // is_base_of
 // template <typename Base>
 // true_type test_base_and_derived_conversion(Base *);
