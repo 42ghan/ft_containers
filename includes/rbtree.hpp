@@ -35,17 +35,20 @@ struct RbTreeNode {
   pointer left;
   pointer right;
   KeyType key;
+  pointer end;
   bool is_nil;
 
   // Constructor
   RbTreeNode(const pointer nil_node = NULL, const bool is_nil_flag = false,
              const RbTreeColor black_or_red = kRed,
-             const KeyType& key_value = KeyType())
+             const KeyType& key_value = KeyType(),
+             const pointer end_node = NULL)
       : color(black_or_red),
         parent(nil_node),
         left(nil_node),
         right(nil_node),
         key(key_value),
+        end(end_node),
         is_nil(is_nil_flag) {}
 
   // find predecessor / successor of a node
@@ -62,12 +65,20 @@ struct RbTreeNode {
 
   pointer FindSuccessor(void) const {
     const RbTreeNode* node = this;
-    if (!node->right->is_nil) return Min(node->right);
+    if (node->is_nil) return node->end;
+    if (!node->right->is_nil) {
+      pointer ret = Min(node->right);
+      if (ret->is_nil)
+        return ret->end;
+      else
+        return ret;
+    };
     pointer p = node->parent;
     while (!p->is_nil && node == p->right) {
       node = p;
       p = node->parent;
     }
+    if (p->is_nil) return p->end;
     return p;
   }
 
@@ -121,13 +132,17 @@ class RbTreeIterator {
   }
 
   // dereference & reference
-  template <typename enable_if<!is_const<typename value_type::KeyType>::value,
-                               bool>::type>
-  reference operator*(void) FT_NOEXCEPT_ {
+  // template <>
+  typename value_type::KeyType operator*(typename enable_if<is_const<typename value_type::KeyType>::value>::type) const FT_NOEXCEPT_ {
     return current_->key;
   }
 
-  typename value_type::KeyType operator*(void) const FT_NOEXCEPT_ {
+  typename value_type::KeyType operator*(typename enable_if<is_const<typename value_type::KeyType>::value>::type)FT_NOEXCEPT_ {
+    return current_->key;
+  }
+  
+  // template <typename enable_if<is_const<typename value_type::KeyType>::value, bool>::type>
+  typename value_type::KeyType& operator*(typename enable_if<!is_const<typename value_type::KeyType>::value>::type) FT_NOEXCEPT_ {
     return current_->key;
   }
 
@@ -214,6 +229,7 @@ class RbTree {
         alloc_.construct(nil, Node(NULL, true, kBlack));
         end = alloc_.allocate(1);
         alloc_.construct(end, Node(nil));
+        nil->end = end;
       } catch (const std::exception& e) {
         alloc_.destroy(nil);
         alloc_.deallocate(nil, 1);
@@ -477,8 +493,7 @@ class RbTree {
     } else {
       impl_.min = root_;
       impl_.max = root_;
-      impl_.end->parent =
-      impl_.max = root_;
+      impl_.end->parent = impl_.max = root_;
       impl_.end->parent = node;
     }
     return make_pair(iterator(node), true);

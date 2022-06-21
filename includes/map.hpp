@@ -122,7 +122,7 @@ class map {
 
   size_type max_size(void) const FT_NOEXCEPT_ {
     const size_type diff_max =
-        std::numeric_limits<size_type>::max() / sizeof(value_type);
+        std::numeric_limits<size_type>::max() / sizeof(Node_);
     const size_type alloc_max = alloc_.max_size();
     return std::min(diff_max, alloc_max);
   }
@@ -131,8 +131,11 @@ class map {
   // NOTE: after making insert, replace tree_.insert to insert
   mapped_type& operator[](const key_type& key) {
     NodePtr_ node = tree_.Search(make_pair(key, mapped_type())).base();
-    return node->is_nil ? *(insert(make_pair(key, mapped_type())).first).second
-                        : node->key.second;
+    if (node->is_nil) {
+      mapped_type& ret = (*(insert(make_pair(key, mapped_type())).first)).second;
+      return ret;
+    } else
+      return node->key.second;
   }
 
   // Modifiers
@@ -192,13 +195,17 @@ class map {
     return tree_.Search(make_pair(k, mapped_type())).base()->is_nil ? 0 : 1;
   }
 
-  iterator lower_bound(const key_type& key) { return tree_.LowerBound(make_pair(key, mapped_type())); }
+  iterator lower_bound(const key_type& key) {
+    return tree_.LowerBound(make_pair(key, mapped_type()));
+  }
 
   const_iterator lower_bound(const key_type& key) const {
     return tree_.LowerBound(make_pair(key, mapped_type()));
   }
 
-  iterator upper_bound(const key_type& key) { return tree_.UpperBound(make_pair(key, mapped_type())); }
+  iterator upper_bound(const key_type& key) {
+    return tree_.UpperBound(make_pair(key, mapped_type()));
+  }
 
   const_iterator upper_bound(const key_type& key) const {
     return tree_.UpperBound(make_pair(key, mapped_type()));
