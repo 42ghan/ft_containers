@@ -86,9 +86,7 @@ class map {
         tree_(Base_(original.tree_)) {}
 
   // Destructor
-  ~map(void) {
-    for (iterator itr = begin(); itr != end(); ++itr) tree_.Delete(itr.base());
-  }
+  ~map(void) {}
 
   // Assignment operator overload
   map& operator=(const map& rhs) {
@@ -177,14 +175,7 @@ class map {
 
   void swap(map& x) { tree_.swap(x.tree_); }
 
-  void clear(void) {
-    // for (iterator itr = begin(); itr != end(); ++itr)
-    //   tree_.Delete(itr.base());
-    while (size()) {
-      std::cout << size() << "\n";
-      erase(begin());
-    }
-  }
+  void clear(void) { tree_.ClearPreOrder(tree_.GetRoot()); }
 
   // Observers
   key_compare key_comp(void) const { return comp_; }

@@ -287,8 +287,10 @@ class RbTree {
     ~RbTreeImpl_(void) {
       alloc_.destroy(nil);
       alloc_.deallocate(nil, 1);
-      alloc_.destroy(end);
-      alloc_.deallocate(end, 1);
+      if (nil != end) {
+        alloc_.destroy(end);
+        alloc_.deallocate(end, 1);
+      }
     }
   };
 
@@ -319,12 +321,15 @@ class RbTree {
         comp_(original.comp_),
         alloc_(original.alloc_),
         size_(0) {
-    for (const_iterator itr = original.begin(); itr != original.end(); ++itr) 
+    for (const_iterator itr = original.begin(); itr != original.end(); ++itr)
       Insert(*itr);
   }
 
   // Destructor
-  ~RbTree(void) { ClearPreOrder_(root_); }
+  ~RbTree(void) {
+    if (size_ > 0)
+      ClearPreOrder(root_);
+  }
 
  private:
   // Rotations
@@ -479,17 +484,18 @@ class RbTree {
     node->color = kBlack;
   }
 
+ public:
   // SECTION : clear pre-order
-  void ClearPreOrder_(NodePtr node) {
+  void ClearPreOrder(NodePtr node) {
     if (node == impl_.nil) return;
-    ClearPreOrder_(node->left);
-    ClearPreOrder_(node->right);
+    ClearPreOrder(node->left);
+    ClearPreOrder(node->right);
     alloc_.destroy(node);
     alloc_.deallocate(node, 1);
     size_ = 0;
+    if (size_ == 0) impl_.end = impl_.nil;
   }
 
- public:
   // search
   iterator Search(const KeyType& key_value) const {
     NodePtr node = root_;
