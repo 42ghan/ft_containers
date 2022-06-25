@@ -94,24 +94,92 @@ struct RbTreeNode {
   }
 };
 
-template <typename Iterator>
-class RbTreeIterator {
+template <typename Value>
+class RbTreeConstIterator {
  private:
-  Iterator current_;
-  typedef iterator_traits<Iterator> traits_type_;
+  RbTreeNode<Value>* current_;
 
  public:
-  typedef Iterator iterator_type;
   typedef bidirectional_iterator_tag iterator_category;
-  typedef typename traits_type_::value_type value_type;
-  typedef typename traits_type_::difference_type difference_type;
-  typedef typename value_type::KeyRef reference;
-  typedef typename traits_type_::pointer pointer;
+  typedef Value value_type;
+  typedef const Value& reference;
+  typedef const Value* pointer;
+  typedef ptrdiff_t difference_type;
 
   // Constructors
-  RbTreeIterator(void) : current_(Iterator()) {}
+  RbTreeConstIterator(void) : current_() {}
 
-  RbTreeIterator(Iterator itr) : current_(itr) {}
+  RbTreeConstIterator(RbTreeNode<Value>* itr) : current_(itr) {}
+
+  RbTreeConstIterator(const RbTreeConstIterator& original)
+      : current_(original.current_) {}
+
+  // Destructor
+  ~RbTreeConstIterator(void) {}
+
+  // Copy Assignment operator overload
+  RbTreeConstIterator& operator=(const RbTreeConstIterator& rhs) FT_NOEXCEPT_ {
+    current_ = rhs.current_;
+    return *this;
+  }
+
+  // dereference & reference
+  reference operator*(void) const FT_NOEXCEPT_ { return current_->key; }
+
+  pointer operator->(void) const FT_NOEXCEPT_ { return &(current_->key); }
+
+  // increment & decrement
+  RbTreeConstIterator& operator++(void) {
+    current_ = current_->FindSuccessor();
+    return *this;
+  }
+
+  RbTreeConstIterator operator++(int) {
+    RbTreeConstIterator tmp = *this;
+    this->operator++();
+    return tmp;
+  }
+
+  RbTreeConstIterator& operator--(void) {
+    current_ = current_->FindPredecessor();
+    return *this;
+  }
+
+  RbTreeConstIterator operator--(int) {
+    RbTreeConstIterator tmp = *this;
+    this->operator--();
+    return tmp;
+  }
+
+  friend bool operator==(const RbTreeConstIterator<Value>& lhs,
+                         const RbTreeConstIterator<Value>& rhs) {
+    return lhs.base() == rhs.base();
+  }
+
+  friend bool operator!=(const RbTreeConstIterator<Value>& lhs,
+                         const RbTreeConstIterator<Value>& rhs) {
+    return lhs.base() != rhs.base();
+  }
+
+  RbTreeNode<Value>* base(void) const { return current_; }
+};
+
+template <typename Value>
+class RbTreeIterator {
+ private:
+  RbTreeNode<Value>* current_;
+
+ public:
+  typedef bidirectional_iterator_tag iterator_category;
+  typedef Value value_type;
+  typedef Value& reference;
+  typedef Value* pointer;
+  typedef ptrdiff_t difference_type;
+
+  // Constructors
+  RbTreeIterator(void) : current_() {}
+
+  RbTreeIterator(RbTreeNode<Value>* itr) : current_(itr) {}
 
   RbTreeIterator(const RbTreeIterator& original)
       : current_(original.current_) {}
@@ -127,35 +195,14 @@ class RbTreeIterator {
 
   // To const iterator
   template <typename U>
-  operator RbTreeIterator<const U*>(void) {
-    return (RbTreeIterator<const U*>(base()));
+  operator RbTreeConstIterator<U>(void) {
+    return (RbTreeConstIterator<U>(base()));
   }
 
   // dereference & reference
-  // template <>
-  typename value_type::KeyType operator*(typename enable_if<is_const<typename value_type::KeyType>::value>::type) const FT_NOEXCEPT_ {
-    return current_->key;
-  }
+  reference operator*(void) const FT_NOEXCEPT_ { return current_->key; }
 
-  typename value_type::KeyType operator*(typename enable_if<is_const<typename value_type::KeyType>::value>::type)FT_NOEXCEPT_ {
-    return current_->key;
-  }
-  
-  // template <typename enable_if<is_const<typename value_type::KeyType>::value, bool>::type>
-  typename value_type::KeyType& operator*(typename enable_if<!is_const<typename value_type::KeyType>::value>::type) FT_NOEXCEPT_ {
-    return current_->key;
-  }
-
-  // typename value_type::KeyType& operator*(void) FT_NOEXCEPT_ { return
-  // current_->key; }
-
-  typename value_type::KeyType* operator->(void) FT_NOEXCEPT_ {
-    return &(current_->key);
-  }
-
-  const typename value_type::KeyType* operator->(void) const FT_NOEXCEPT_ {
-    return &(current_->key);
-  }
+  pointer operator->(void) const FT_NOEXCEPT_ { return &(current_->key); }
 
   // increment & decrement
   RbTreeIterator& operator++(void) {
@@ -180,20 +227,19 @@ class RbTreeIterator {
     return tmp;
   }
 
-  Iterator base(void) const { return current_; }
+  // TODO : check why use friend
+  friend bool operator==(const RbTreeIterator<Value>& lhs,
+                         const RbTreeIterator<Value>& rhs) {
+    return lhs.base() == rhs.base();
+  }
+
+  friend bool operator!=(const RbTreeIterator<Value>& lhs,
+                         const RbTreeIterator<Value>& rhs) {
+    return lhs.base() != rhs.base();
+  }
+
+  RbTreeNode<Value>* base(void) const { return current_; }
 };
-
-template <typename IteratorL, typename IteratorR>
-inline bool operator==(const RbTreeIterator<IteratorL>& lhs,
-                       const RbTreeIterator<IteratorR>& rhs) {
-  return lhs.base() == rhs.base();
-}
-
-template <typename IteratorL, typename IteratorR>
-inline bool operator!=(const RbTreeIterator<IteratorL>& lhs,
-                       const RbTreeIterator<IteratorR>& rhs) {
-  return !(lhs.base() == rhs.base());
-}
 
 // SECTION : Red-Black Tree
 template <typename Key, typename Compare = std::less<Key>,
@@ -208,8 +254,8 @@ class RbTree {
   typedef Node* NodePtr;
   typedef typename AllocType::template rebind<Node>::other AllocNodeType;
   typedef typename AllocNodeType::const_pointer ConstNodePtr;
-  typedef RbTreeIterator<NodePtr> iterator;
-  typedef RbTreeIterator<ConstNodePtr> const_iterator;
+  typedef RbTreeIterator<KeyType> iterator;
+  typedef RbTreeConstIterator<KeyType> const_iterator;
   typedef reverse_iterator<const_iterator> const_reverse_iterator;
   typedef reverse_iterator<iterator> reverse_iterator;
   typedef size_t size_type;
@@ -273,7 +319,7 @@ class RbTree {
         comp_(original.comp_),
         alloc_(original.alloc_),
         size_(0) {
-    for (const_iterator itr = original.begin(); itr != end(); itr++)
+    for (const_iterator itr = original.begin(); itr != original.end(); ++itr) 
       Insert(*itr);
   }
 
@@ -445,9 +491,10 @@ class RbTree {
 
  public:
   // search
-  iterator Search(const KeyType& key_value) {
+  iterator Search(const KeyType& key_value) const {
     NodePtr node = root_;
-    while (node != impl_.nil && node->key != key_value)
+    while (node != impl_.nil &&
+           (comp_(node->key, key_value) || comp_(key_value, node->key)))
       node = comp_(key_value, node->key) ? node->left : node->right;
     return (node == impl_.nil) ? iterator(impl_.end) : iterator(node);
   }
@@ -468,7 +515,7 @@ class RbTree {
     while (cursor != impl_.nil) {
       trailing = cursor;
       if (!comp_(key_value, cursor->key) && !comp_(cursor->key, key_value))
-        return make_pair(iterator(cursor), false);
+        return ft::make_pair(iterator(cursor), false);
       cursor = comp_(key_value, cursor->key) ? cursor->left : cursor->right;
     }
     NodePtr node = alloc_.allocate(1);
@@ -493,10 +540,9 @@ class RbTree {
     } else {
       impl_.min = root_;
       impl_.max = root_;
-      impl_.end->parent = impl_.max = root_;
       impl_.end->parent = node;
     }
-    return make_pair(iterator(node), true);
+    return ft::make_pair(iterator(node), true);
   }
 
   // delete
@@ -635,6 +681,9 @@ class RbTree {
     x = *this;
     *this = temp;
   }
+
+  // max allocation size
+  size_type MaxSize(void) const { return alloc_.max_size(); }
 };
 }  // namespace ft
 

@@ -11,9 +11,9 @@
 #define FT_NOEXCEPT_ throw()
 
 #include <functional>
-#include <map>
 #include <memory>
 
+#include "algorithm.hpp"
 #include "iterator_traits.hpp"
 #include "rbtree.hpp"
 #include "utility.hpp"
@@ -55,10 +55,10 @@ class map {
   Base_ tree_;
 
  public:
-  typedef RbTreeIterator<typename Base_::NodePtr> iterator;
-  typedef RbTreeIterator<typename Base_::ConstNodePtr> const_iterator;
-  typedef reverse_iterator<const_iterator> const_reverse_iterator;
-  typedef reverse_iterator<iterator> reverse_iterator;
+  typedef typename Base_::iterator iterator;
+  typedef typename Base_::const_iterator const_iterator;
+  typedef typename Base_::const_reverse_iterator const_reverse_iterator;
+  typedef typename Base_::reverse_iterator reverse_iterator;
   typedef typename iterator_traits<iterator>::difference_type difference_type;
   typedef size_t size_type;
 
@@ -87,7 +87,7 @@ class map {
 
   // Destructor
   ~map(void) {
-    for (iterator itr = begin(); itr != end(); itr++) tree_.Delete(itr.base());
+    for (iterator itr = begin(); itr != end(); ++itr) tree_.Delete(itr.base());
   }
 
   // Assignment operator overload
@@ -96,6 +96,7 @@ class map {
     comp_ = rhs.comp_;
     alloc_ = rhs.alloc_;
     tree_ = Base_(rhs.tree_);
+    return *this;
   }
 
   // Iterators
@@ -107,13 +108,15 @@ class map {
 
   const_iterator end(void) const FT_NOEXCEPT_ { return tree_.end(); }
 
-  iterator rbegin(void) FT_NOEXCEPT_ { return tree_.rbegin(); }
+  reverse_iterator rbegin(void) FT_NOEXCEPT_ { return tree_.rbegin(); }
 
-  const_iterator rbegin(void) const FT_NOEXCEPT_ { return tree_.rbegin(); }
+  const_reverse_iterator rbegin(void) const FT_NOEXCEPT_ {
+    return tree_.rbegin();
+  }
 
-  iterator rend(void) FT_NOEXCEPT_ { return tree_.rend(); }
+  reverse_iterator rend(void) FT_NOEXCEPT_ { return tree_.rend(); }
 
-  const_iterator rend(void) const FT_NOEXCEPT_ { return tree_.rend(); }
+  const_reverse_iterator rend(void) const FT_NOEXCEPT_ { return tree_.rend(); }
 
   // Capacity
   bool empty(void) const FT_NOEXCEPT_ { return (tree_.GetSize() == 0); }
@@ -121,24 +124,22 @@ class map {
   size_type size(void) const FT_NOEXCEPT_ { return tree_.GetSize(); }
 
   size_type max_size(void) const FT_NOEXCEPT_ {
-    const size_type diff_max =
-        std::numeric_limits<size_type>::max() / sizeof(Node_);
-    const size_type alloc_max = alloc_.max_size();
-    return std::min(diff_max, alloc_max);
+    // const size_type diff_max =
+    //     std::numeric_limits<size_type>::max() / sizeof(Node_);
+    // const size_type alloc_max = tree_.MaxSize();
+    // return std::min(diff_max, alloc_max);
+    return tree_.MaxSize();
   }
 
   // Element Access
   // NOTE: after making insert, replace tree_.insert to insert
   mapped_type& operator[](const key_type& key) {
-    NodePtr_ node = tree_.Search(make_pair(key, mapped_type())).base();
-    if (node->is_nil) {
-      mapped_type& ret = (*(insert(make_pair(key, mapped_type())).first)).second;
-      return ret;
-    } else
-      return node->key.second;
+    NodePtr_ node = tree_.Search(ft::make_pair(key, mapped_type())).base();
+    return (node->is_nil)
+               ? (*(insert(ft::make_pair(key, mapped_type())).first)).second
+               : node->key.second;
   }
 
-  // Modifiers
   // single element
   pair<iterator, bool> insert(const value_type& val) {
     return tree_.Insert(val);
@@ -164,18 +165,25 @@ class map {
 
   // single element with a given key
   size_type erase(const key_type& key) {
-    tree_.Delete(NULL, make_pair(key, mapped_type()));
+    size_type original = size();
+    tree_.Delete(NULL, ft::make_pair(key, mapped_type()));
+    return original - size();
   }
 
   // range
   void erase(iterator first, iterator last) {
-    for (; first != last; first++) tree_.Delete(first.base());
+    for (; first != last; ++first) tree_.Delete(first.base());
   }
 
   void swap(map& x) { tree_.swap(x.tree_); }
 
   void clear(void) {
-    for (iterator itr = begin(); itr != end(); itr++) tree_.Delete(itr.base());
+    // for (iterator itr = begin(); itr != end(); ++itr)
+    //   tree_.Delete(itr.base());
+    while (size()) {
+      std::cout << size() << "\n";
+      erase(begin());
+    }
   }
 
   // Observers
@@ -185,43 +193,87 @@ class map {
 
   // Operations
   iterator find(const key_type& k) {
-    return tree_.Search(make_pair(k, mapped_type()));
+    return tree_.Search(ft::make_pair(k, mapped_type()));
   }
 
   const_iterator find(const key_type& k) const {
-    return const_iterator(tree_.Search(make_pair(k, mapped_type())).base());
+    return const_iterator(tree_.Search(ft::make_pair(k, mapped_type())).base());
   }
-  size_type count(const key_type& k) {
-    return tree_.Search(make_pair(k, mapped_type())).base()->is_nil ? 0 : 1;
+  size_type count(const key_type& k) const {
+    return tree_.Search(ft::make_pair(k, mapped_type())).base()->is_nil ? 0 : 1;
   }
 
   iterator lower_bound(const key_type& key) {
-    return tree_.LowerBound(make_pair(key, mapped_type()));
+    return tree_.LowerBound(ft::make_pair(key, mapped_type()));
   }
 
   const_iterator lower_bound(const key_type& key) const {
-    return tree_.LowerBound(make_pair(key, mapped_type()));
+    return tree_.LowerBound(ft::make_pair(key, mapped_type()));
   }
 
   iterator upper_bound(const key_type& key) {
-    return tree_.UpperBound(make_pair(key, mapped_type()));
+    return tree_.UpperBound(ft::make_pair(key, mapped_type()));
   }
 
   const_iterator upper_bound(const key_type& key) const {
-    return tree_.UpperBound(make_pair(key, mapped_type()));
+    return tree_.UpperBound(ft::make_pair(key, mapped_type()));
   }
 
   pair<const_iterator, const_iterator> equal_range(const key_type& key) const {
-    return make_pair(lower_bound(key), upper_bound(key));
+    return ft::make_pair(lower_bound(key), upper_bound(key));
   }
 
   pair<iterator, iterator> equal_range(const key_type& key) {
-    return make_pair(lower_bound(key), upper_bound(key));
+    return ft::make_pair(lower_bound(key), upper_bound(key));
   }
 
   // Allocator
   allocator_type get_allocator(void) const FT_NOEXCEPT_ { return alloc_; }
 };
+
+template <typename Key, typename T, typename Compare, typename Alloc>
+bool operator==(const map<Key, T, Compare, Alloc>& lhs,
+                const map<Key, T, Compare, Alloc>& rhs) {
+  return (lhs.size() == rhs.size() &&
+          equal(lhs.begin(), lhs.end(), rhs.begin()));
+}
+
+template <typename Key, typename T, typename Compare, typename Alloc>
+bool operator!=(const map<Key, T, Compare, Alloc>& lhs,
+                const map<Key, T, Compare, Alloc>& rhs) {
+  return !(lhs == rhs);
+}
+
+template <typename Key, typename T, typename Compare, typename Alloc>
+bool operator<(const map<Key, T, Compare, Alloc>& lhs,
+               const map<Key, T, Compare, Alloc>& rhs) {
+  return lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(),
+                                 rhs.end());
+}
+
+template <typename Key, typename T, typename Compare, typename Alloc>
+bool operator<=(const map<Key, T, Compare, Alloc>& lhs,
+                const map<Key, T, Compare, Alloc>& rhs) {
+  return !(rhs < lhs);
+}
+
+template <typename Key, typename T, typename Compare, typename Alloc>
+bool operator>(const map<Key, T, Compare, Alloc>& lhs,
+               const map<Key, T, Compare, Alloc>& rhs) {
+  return rhs < lhs;
+}
+
+template <typename Key, typename T, typename Compare, typename Alloc>
+bool operator>=(const map<Key, T, Compare, Alloc>& lhs,
+                const map<Key, T, Compare, Alloc>& rhs) {
+  return !(lhs < rhs);
+}
+
+template <class Key, class T, class Compare, class Alloc>
+void swap(map<Key, T, Compare, Alloc>& x, map<Key, T, Compare, Alloc>& y) {
+  x.swap(y);
+}
+
 }  // namespace ft
 
 #endif

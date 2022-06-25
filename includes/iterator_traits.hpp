@@ -172,7 +172,10 @@ class reverse_iterator
   }
 
   // dereference & reference
-  reference operator*(void) const FT_NOEXCEPT_ { return *(current_ - 1); }
+  reference operator*(void) const FT_NOEXCEPT_ {
+    Iterator tmp = current_;
+    return *(--tmp);
+  }
 
   pointer operator->(void) const FT_NOEXCEPT_ { return &(operator*()); }
 
