@@ -16,6 +16,10 @@
 #include "type_traits.hpp"
 #include "utility.hpp"
 
+#define R "\033[1;31m"
+#define B "\033[1;34m"
+#define RESET "\033[0m"
+
 #define FT_NOEXCEPT_ throw()
 
 namespace ft {
@@ -269,7 +273,8 @@ class RbTree {
     NodePtr max;
 
     // Default constructor
-    RbTreeImpl_(const AllocNodeType& alloc = AllocNodeType()) : alloc_(alloc) {
+    explicit RbTreeImpl_(const AllocNodeType& alloc = AllocNodeType())
+        : alloc_(alloc), min(NULL), max(NULL) {
       try {
         nil = alloc_.allocate(1);
         alloc_.construct(nil, Node(NULL, true, kBlack));
@@ -281,6 +286,39 @@ class RbTree {
         alloc_.deallocate(nil, 1);
         throw e;
       }
+    }
+
+    RbTreeImpl_(const RbTreeImpl_& original)
+        : alloc_(original.alloc_), min(NULL), max(NULL) {
+      try {
+        nil = alloc_.allocate(1);
+        alloc_.construct(nil, Node(NULL, true, kBlack));
+        end = alloc_.allocate(1);
+        alloc_.construct(end, Node(nil));
+        nil->end = end;
+      } catch (const std::exception& e) {
+        alloc_.destroy(nil);
+        alloc_.deallocate(nil, 1);
+        throw e;
+      }
+    }
+
+    RbTreeImpl_& operator=(const RbTreeImpl_& rhs) {
+      try {
+        min = NULL;
+        max = NULL;
+        alloc_ = rhs.alloc_;
+        nil = alloc_.allocate(1);
+        alloc_.construct(nil, Node(NULL, true, kBlack));
+        end = alloc_.allocate(1);
+        alloc_.construct(end, Node(nil));
+        nil->end = end;
+      } catch (const std::exception& e) {
+        alloc_.destroy(nil);
+        alloc_.deallocate(nil, 1);
+        throw e;
+      }
+      return *this;
     }
 
     // Destructor
@@ -321,15 +359,25 @@ class RbTree {
         comp_(original.comp_),
         alloc_(original.alloc_),
         size_(0) {
-    for (const_iterator itr = original.begin(); itr != original.end(); ++itr)
-      Insert(*itr);
+    const_iterator itr = original.begin();
+    const_iterator itre = original.end();
+    for (; itr != itre; ++itr) Insert(*itr);
+  }
+
+  RbTree& operator=(const RbTree& rhs) {
+    impl_ = RbTreeImpl_(rhs.alloc_);
+    root_ = impl_.nil;
+    comp_ = rhs.comp_;
+    alloc_ = rhs.alloc_;
+    size_ = 0;
+    const_iterator itr = rhs.begin();
+    const_iterator itre = rhs.end();
+    for (; itr != itre; ++itr) Insert(*itr);
+    return *this;
   }
 
   // Destructor
-  ~RbTree(void) {
-    if (size_ > 0)
-      ClearPreOrder(root_);
-  }
+  ~RbTree(void) { ClearPostOrder(root_); }
 
  private:
   // Rotations
@@ -414,7 +462,7 @@ class RbTree {
     else if (!comp_(impl_.max->key, original->parent->key) &&
              !comp_(original->parent->key, impl_.max->key)) {
       impl_.max = original->parent;
-      impl_.end->parent = original->parent;
+      impl_.end->parent = impl_.max;
     }
     if (original->parent == impl_.nil)
       root_ = replacement;
@@ -485,17 +533,23 @@ class RbTree {
   }
 
  public:
-  // SECTION : clear pre-order
-  void ClearPreOrder(NodePtr node) {
+  // SECTION : clear post-order
+  void ClearPostOrder(NodePtr node) {
     if (node == impl_.nil) return;
-    ClearPreOrder(node->left);
-    ClearPreOrder(node->right);
+    ClearPostOrder(node->left);
+    ClearPostOrder(node->right);
     alloc_.destroy(node);
     alloc_.deallocate(node, 1);
-    size_ = 0;
-    if (size_ == 0) impl_.end = impl_.nil;
+    --size_;
+    if (size_ == 0) {
+      root_ = impl_.nil;
+      alloc_.destroy(impl_.end);
+      alloc_.deallocate(impl_.end, 1);
+      impl_.min = impl_.nil;
+      impl_.max = impl_.nil;
+      impl_.end = impl_.nil;
+    }
   }
-
   // search
   iterator Search(const KeyType& key_value) const {
     NodePtr node = root_;
@@ -553,7 +607,9 @@ class RbTree {
 
   // delete
   // NOTE : will need multiple case specialization
+  // x : replacement, y : check_color, z : node
   void Delete(NodePtr node, const KeyType& key_value = KeyType()) {
+    bool deallocate_flag = false;
     if (node == NULL) node = Search(key_value).base();
     if (node == impl_.nil) return;
     NodePtr replacement = impl_.nil;
@@ -569,24 +625,27 @@ class RbTree {
       check_color = Node::Min(node->right);
       original_color = check_color->color;
       replacement = check_color->right;
-      if (check_color->parent != node) {
+      if (check_color->parent == node) replacement->parent = check_color;
+      else {
         NodePtr temp = check_color;
-        check_color = check_color->right;
-        if (check_color->parent == node) replacement->parent = check_color;
+        replacement = check_color->right;
         Transplant_(temp, check_color->right);
         check_color->right = node->right;
         check_color->right->parent = check_color;
         alloc_.destroy(temp);
         alloc_.deallocate(temp, 1);
+        deallocate_flag = true;
       }
       Transplant_(node, check_color);
       check_color->left = node->left;
       check_color->left->parent = check_color;
       check_color->color = node->color;
     }
-    alloc_.destroy(node);
-    alloc_.deallocate(node, 1);
-    size_--;
+    if (deallocate_flag) {
+      alloc_.destroy(node);
+      alloc_.deallocate(node, 1);
+    }
+    --size_;
     if (original_color == kBlack) AdjustAfterDelete_(replacement);
   }
 
@@ -690,7 +749,21 @@ class RbTree {
 
   // max allocation size
   size_type MaxSize(void) const { return alloc_.max_size(); }
+
+  void print_tree(const std::string& prefix, NodePtr x, bool isLeft) {
+    if (x != impl_.nil) {
+      std::cout << prefix;
+      std::cout << (isLeft ? "L├──" : "R└──");
+      if (x->color == kRed) {
+        std::cout << R << x->key.first << RESET << "\n";
+      } else {
+        std::cout << B << x->key.first << RESET << "\n";
+      }
+      print_tree(prefix + (isLeft ? " │   " : "     "), x->left, true);
+      print_tree(prefix + (isLeft ? " │   " : "     "), x->right, false);
+    };
+  }
 };
-}  // namespace ft
+}
 
 #endif
