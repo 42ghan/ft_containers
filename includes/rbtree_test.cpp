@@ -11,21 +11,28 @@ void check_leak(void) {
   // rbtree.Insert(5);
   // rbtree.Insert(16);
 
-  std::list<T3> lst;
-  unsigned int lst_size = 10;
-  for (unsigned int i = 0; i < lst_size; ++i)
-    lst.push_back(T3(i, std::string((lst_size - i), i + 65)));
+  // SECTION : Delete test
+  // std::list<T3> lst;
+  // unsigned int lst_size = 10;
+  // for (unsigned int i = 0; i < lst_size; ++i)
+  //   lst.push_back(T3(i, std::string((lst_size - i), i + 65)));
+  // ft::RbTree<ft::pair<const int, std::string> > rbtree;
+  // for (std::list<T3>::iterator it = lst.begin(); it != lst.end(); ++it)
+  //   rbtree.Insert(*it);
+  // // rbtree.Insert(ft::make_pair(1, 42));
+  // // rbtree.Insert(ft::make_pair(3, 42));
+  // // rbtree.Insert(ft::make_pair(5, 42));
+  // rbtree.print_tree("", rbtree.GetRoot(), false);
+  // rbtree.Delete((++rbtree.begin()).base());
+  // rbtree.print_tree("", rbtree.GetRoot(), false);
+  // rbtree.Delete(rbtree.begin().base());
+  // rbtree.print_tree("", rbtree.GetRoot(), false);
+
+  // SECTION : Insert test
   ft::RbTree<ft::pair<const int, std::string> > rbtree;
-  for (std::list<T3>::iterator it = lst.begin(); it != lst.end(); ++it)
-    rbtree.Insert(*it);
-  // rbtree.Insert(ft::make_pair(1, 42));
-  // rbtree.Insert(ft::make_pair(3, 42));
-  // rbtree.Insert(ft::make_pair(5, 42));
+  rbtree.Insert(ft::make_pair(5, "blah"), rbtree.begin().base());
   rbtree.print_tree("", rbtree.GetRoot(), false);
-  rbtree.Delete((++rbtree.begin()).base());
-  rbtree.print_tree("", rbtree.GetRoot(), false);
-  rbtree.Delete(rbtree.begin().base());
-  rbtree.print_tree("", rbtree.GetRoot(), false);
+
   // std::cout << (rbtree.begin() != rbtree.end()) << "\n";
   // for (ft::RbTree<ft::pair<const int, int> >::iterator itr = rbtree.begin();
   //      itr != rbtree.end(); ++itr) {
@@ -37,7 +44,7 @@ void check_leak(void) {
 
 int main(void) {
   check_leak();
-  // system("leaks a.out");
+  system("leaks a.out");
 }
 
 // #include <iostream>

@@ -121,19 +121,13 @@ class map {
 
   size_type size(void) const FT_NOEXCEPT_ { return tree_.GetSize(); }
 
-  size_type max_size(void) const FT_NOEXCEPT_ {
-    // const size_type diff_max =
-    //     std::numeric_limits<size_type>::max() / sizeof(Node_);
-    // const size_type alloc_max = tree_.MaxSize();
-    // return std::min(diff_max, alloc_max);
-    return tree_.MaxSize();
-  }
+  size_type max_size(void) const FT_NOEXCEPT_ { return tree_.MaxSize(); }
 
   // Element Access
   // NOTE: after making insert, replace tree_.insert to insert
   mapped_type& operator[](const key_type& key) {
     NodePtr_ node = tree_.Search(ft::make_pair(key, mapped_type())).base();
-    return (node->is_nil)
+    return (!node->is_nil)
                ? (*(insert(ft::make_pair(key, mapped_type())).first)).second
                : node->key.second;
   }
@@ -145,7 +139,7 @@ class map {
 
   // single element at a given position
   iterator insert(iterator position, const value_type& val) {
-    return (val.first > (*position).first)
+    return (position != end() && val.first > (*position).first)
                ? tree_.Insert(val, position.base()).first
                : insert(val).first;
   }
@@ -170,7 +164,12 @@ class map {
 
   // range
   void erase(iterator first, iterator last) {
-    for (; first != last; ++first) tree_.Delete(first.base());
+    for (; first != last;) {
+      iterator tmp = first;
+      ++tmp;
+      tree_.Delete(first.base());
+      first = tmp;
+    };
   }
 
   void swap(map& x) { tree_.swap(x.tree_); }
@@ -191,7 +190,7 @@ class map {
     return const_iterator(tree_.Search(ft::make_pair(k, mapped_type())).base());
   }
   size_type count(const key_type& k) const {
-    return tree_.Search(ft::make_pair(k, mapped_type())).base()->is_nil ? 0 : 1;
+    return tree_.Search(ft::make_pair(k, mapped_type())) == end() ? 0 : 1;
   }
 
   iterator lower_bound(const key_type& key) {
