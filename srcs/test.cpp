@@ -22,5 +22,10 @@ int main(void) {
   //   for (ft::vector<char>::iterator itr = v.begin(); itr != v.end(); itr++)
   //     std::cout << *itr << "\n";
   // }
-  ft::vector<int> v(5, 1);
+  ft::vector<int> v;
+  for (int i = 0; i < 100000; ++i) {
+    // std::cout << i << ", ";
+    // if (i % 50000 == 0) std::cout << "\n";
+    v.push_back(i);
+  }
 }

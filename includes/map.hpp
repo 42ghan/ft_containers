@@ -76,7 +76,7 @@ class map {
       const key_compare& comp = key_compare(),
       const allocator_type& alloc = allocator_type())
       : comp_(comp), alloc_(alloc), tree_(Base_(value_compare(comp), alloc)) {
-    for (; first != last; first++) insert(*first);
+    for (; first != last; ++first) insert(*first);
   }
 
   // #3 copy constructor
@@ -90,7 +90,8 @@ class map {
 
   // Assignment operator overload
   map& operator=(const map& rhs) {
-    // clear();
+    // FIXME : check leak
+    clear();
     comp_ = rhs.comp_;
     alloc_ = rhs.alloc_;
     tree_ = Base_(rhs.tree_);
@@ -124,7 +125,6 @@ class map {
   size_type max_size(void) const FT_NOEXCEPT_ { return tree_.MaxSize(); }
 
   // Element Access
-  // NOTE: after making insert, replace tree_.insert to insert
   mapped_type& operator[](const key_type& key) {
     NodePtr_ node = tree_.Search(ft::make_pair(key, mapped_type())).base();
     return (!node->is_nil)
@@ -132,6 +132,7 @@ class map {
                : node->key.second;
   }
 
+  // Modifiers
   // single element
   pair<iterator, bool> insert(const value_type& val) {
     return tree_.Insert(val);
@@ -149,7 +150,7 @@ class map {
   void insert(InputIterator first,
               typename enable_if<is_input_iterator<InputIterator>::value,
                                  InputIterator>::type last) {
-    for (; first != last; first++) insert(*first);
+    for (; first != last; ++first) insert(*first);
   }
 
   // sigle element at a given position
@@ -169,12 +170,15 @@ class map {
       ++tmp;
       tree_.Delete(first.base());
       first = tmp;
-    };
+    }
   }
 
   void swap(map& x) { tree_.swap(x.tree_); }
 
-  void clear(void) { tree_.ClearPostOrder(tree_.GetRoot()); }
+  void clear(void) {
+    // FIXME : LEAK...
+    tree_.ClearPostOrder(tree_.GetRoot());
+  }
 
   // Observers
   key_compare key_comp(void) const { return comp_; }
@@ -189,6 +193,7 @@ class map {
   const_iterator find(const key_type& k) const {
     return const_iterator(tree_.Search(ft::make_pair(k, mapped_type())).base());
   }
+
   size_type count(const key_type& k) const {
     return tree_.Search(ft::make_pair(k, mapped_type())) == end() ? 0 : 1;
   }
@@ -259,7 +264,7 @@ bool operator>=(const map<Key, T, Compare, Alloc>& lhs,
   return !(lhs < rhs);
 }
 
-template <class Key, class T, class Compare, class Alloc>
+template <typename Key, typename T, typename Compare, typename Alloc>
 void swap(map<Key, T, Compare, Alloc>& x, map<Key, T, Compare, Alloc>& y) {
   x.swap(y);
 }

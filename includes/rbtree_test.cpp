@@ -30,8 +30,13 @@ void check_leak(void) {
 
   // SECTION : Insert test
   ft::RbTree<ft::pair<const int, std::string> > rbtree;
+  // FIXME : weird Insert behaviour...
+  rbtree.Insert(ft::make_pair(4, "blah"), rbtree.begin().base());
   rbtree.Insert(ft::make_pair(5, "blah"), rbtree.begin().base());
+  rbtree.Insert(ft::make_pair(3, "blah"), rbtree.begin().base());
+  rbtree.Insert(ft::make_pair(2, "blah"), rbtree.begin().base());
   rbtree.print_tree("", rbtree.GetRoot(), false);
+  // rbtree.ClearPostOrder(rbtree.GetRoot());
 
   // std::cout << (rbtree.begin() != rbtree.end()) << "\n";
   // for (ft::RbTree<ft::pair<const int, int> >::iterator itr = rbtree.begin();

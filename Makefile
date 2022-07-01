@@ -4,6 +4,8 @@ ifdef DEBUG
 	CXXFLAGS	=	-std=c++98 -g3 -fsanitize=address
 else ifdef LEAKS
 	CXXFLAGS	=	-std=c++98 -g	
+else ifdef STD
+	CXXFLAGS	=	-std=c++98 -Wall -Werror -Wextra -pedantic-errors -D STD=1
 else
 	CXXFLAGS	=	-std=c++98 -Wall -Werror -Wextra -pedantic-errors
 endif
@@ -89,3 +91,8 @@ leaks		:
 test		:
 				@make TEST=1
 				@echo $(CUT)$(L_BLUE)$(BOLD) Run tests! ✅$(RESET)
+
+.PHONY		:	std
+std			:
+				@make STD=1
+				@echo $(CUT)$(L_BLUE)$(BOLD) Run std tests! ✅$(RESET)

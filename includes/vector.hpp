@@ -49,6 +49,7 @@ class VectorIterator {
   // Destructor
   ~VectorIterator(void) {}
 
+  // Const conversion
   template <typename U>
   operator VectorIterator<const U*>(void) {
     return (VectorIterator<const U*>(base()));
@@ -184,13 +185,13 @@ class VectorBase {
  public:
   explicit VectorBase(const allocator_type& alloc = allocator_type())
       : alloc_(alloc) {
-    InitPointers_(0);
+    InitPointers_(1);
   }
 
   explicit VectorBase(const size_type n,
                       const allocator_type& alloc = allocator_type())
       : alloc_(alloc) {
-    InitPointers_(n);
+    (n == 0) ? InitPointers_(1) : InitPointers_(n);
   }
 
   virtual ~VectorBase(void) {
@@ -208,8 +209,8 @@ class vector : protected VectorBase<T, Alloc> {
       InputIterator first,
       typename enable_if<!is_forward_iterator<InputIterator>::value,
                          InputIterator>::type last) {
-    this->InitPointers_(sizeof(value_type) * 16);
-    for (; first != last; first++) push_back(*first);
+    this->InitPointers_();
+    for (; first != last; ++first) push_back(*first);
   }
 
   template <typename InputIterator>
@@ -219,8 +220,8 @@ class vector : protected VectorBase<T, Alloc> {
                          InputIterator>::type last) {
     size_type n =
         static_cast<size_type>(std::distance<InputIterator>(first, last));
-    this->InitPointers_(n);
-    for (; first != last; first++) push_back(*first);
+    this->InitPointers_();
+    for (; first != last; ++first) push_back(*first);
   }
 
   template <typename InputIterator>
@@ -229,7 +230,7 @@ class vector : protected VectorBase<T, Alloc> {
       typename enable_if<!is_forward_iterator<InputIterator>::value,
                          InputIterator>::type last) {
     clear();
-    for (; first != last; first++) push_back(*first);
+    for (; first != last; ++first) push_back(*first);
   }
 
   template <typename InputIterator>
@@ -255,13 +256,13 @@ class vector : protected VectorBase<T, Alloc> {
       typename enable_if<!is_forward_iterator<InputIterator>::value,
                          InputIterator>::type last) {
     if (pos == end())
-      for (InputIterator itr = first; itr != last; itr++) push_back(*itr);
+      for (InputIterator itr = first; itr != last; ++itr) push_back(*itr);
     else {
       vector temp(pos, end(), this->alloc_);
       erase(pos, end());
-      for (InputIterator itr = first; itr != last; itr++) push_back(*itr);
-      for (iterator itr = temp.begin(); itr != temp.end(); itr++)
-        push_back(*itr);
+      for (InputIterator itr = first; itr != last; ++itr) push_back(*itr);
+      iterator itre = temp.end();
+      for (iterator itr = temp.begin(); itr != itre; ++itr) push_back(*itr);
     }
   }
 
@@ -280,21 +281,22 @@ class vector : protected VectorBase<T, Alloc> {
             std::uninitialized_copy(begin(), end(), temp.begin()).base();
         swap(temp);
       }
-      for (InputIterator itr = first; itr != last; itr++) push_back(*itr);
+      for (InputIterator itr = first; itr != last; ++itr) push_back(*itr);
     } else {
       if (size() + n > capacity()) {
         vector temp(size() + n, value_type(), this->alloc_);
         temp.assign(begin(), pos);
-        for (InputIterator itr = first; itr != last; itr++)
+        for (InputIterator itr = first; itr != last; ++itr)
           temp.push_back(*itr);
-        for (iterator itr = pos; itr != end(); itr++) temp.push_back(*itr);
+        iterator itre = end();
+        for (iterator itr = pos; itr != itre; ++itr) temp.push_back(*itr);
         swap(temp);
       } else {
         vector temp(pos, end(), this->alloc_);
         erase(pos, end());
-        for (InputIterator itr = first; itr != last; itr++) push_back(*itr);
-        for (iterator itr = temp.begin(); itr != temp.end(); itr++)
-          push_back(*itr);
+        for (InputIterator itr = first; itr != last; ++itr) push_back(*itr);
+        iterator itre = temp.end();
+        for (iterator itr = temp.begin(); itr != itre; ++itr) push_back(*itr);
       }
     }
   }
@@ -392,10 +394,11 @@ class vector : protected VectorBase<T, Alloc> {
   }
 
   void resize(size_type n, value_type val = value_type()) {
-    if (n <= size())
-      for (iterator itr = begin() + n; itr != end(); itr++)
+    if (n <= size()) {
+      iterator itre = end();
+      for (iterator itr = begin() + n; itr != itre; ++itr)
         this->alloc_.destroy(itr.base());
-    else {
+    } else {
       if (n > capacity()) reserve(n);
       std::uninitialized_fill_n(end(), n - size(), val);
     }
@@ -470,10 +473,10 @@ class vector : protected VectorBase<T, Alloc> {
       this->alloc_.construct(this->end_, val);
       ++this->end_;
     } else {
-      vector temp(size() + 1, value_type(), this->alloc_);
+      vector temp(size() * 2, value_type(), this->alloc_);
       temp.assign(begin(), end());
-      this->alloc_.construct(temp.end_, val);
-      temp.end_++;
+      temp.alloc_.construct(temp.end_, val);
+      ++temp.end_;
       swap(temp);
     }
   }
@@ -499,12 +502,12 @@ class vector : protected VectorBase<T, Alloc> {
         swap(temp);
       } else {
         for (reverse_iterator ritr = rbegin() - 1; ritr.base() != position;
-             ritr++) {
+             ++ritr) {
           this->alloc_.destroy(ritr.base().base());
           this->alloc_.construct(ritr.base().base(), *(ritr + 1));
         }
         this->alloc_.construct(position.base(), val);
-        this->end_++;
+        ++this->end_;
       }
     }
     return insert_pos;
@@ -518,7 +521,7 @@ class vector : protected VectorBase<T, Alloc> {
         temp.assign(begin(), end());
         swap(temp);
       }
-      for (size_type cnt = 0; cnt < n; cnt++) push_back(val);
+      for (size_type cnt = 0; cnt < n; ++cnt) push_back(val);
     } else {
       if (size() + n > capacity()) {
         vector temp(size() + n, value_type(), this->alloc_);
@@ -529,11 +532,11 @@ class vector : protected VectorBase<T, Alloc> {
       } else {
         this->end_ += n;
         for (reverse_iterator ritr = rbegin() - 1; ritr.base() != position + n;
-             ritr++) {
+             ++ritr) {
           this->alloc_.destroy(ritr.base().base());
           this->alloc_.construct(ritr.base().base(), *(ritr + 1));
         }
-        for (iterator itr = position; itr != position + n; itr++) {
+        for (iterator itr = position; itr != position + n; ++itr) {
           this->alloc_.destroy(itr.base());
           this->alloc_.construct(itr.base(), val);
         }
@@ -554,7 +557,8 @@ class vector : protected VectorBase<T, Alloc> {
     if (position + 1 == end())
       pop_back();
     else {
-      for (iterator itr = position; itr + 1 != end(); itr++) {
+      iterator itre = end();
+      for (iterator itr = position; itr + 1 != itre; ++itr) {
         this->alloc_.destroy(itr.base());
         this->alloc_.construct(itr.base(), *(itr + 1));
       }
@@ -567,14 +571,14 @@ class vector : protected VectorBase<T, Alloc> {
   iterator erase(iterator first, iterator last) {
     size_type n = 0;
     size_type move_cnt = 0;
-    for (iterator itr = first; itr != last; itr++) {
+    for (iterator itr = first; itr != last; ++itr) {
       this->alloc_.destroy(itr.base());
-      n++;
+      ++n;
     }
-    for (iterator itr = first; itr + n < end(); itr++) {
+    for (iterator itr = first; itr + n < end(); ++itr) {
       if (move_cnt >= n) this->alloc_.destroy(itr.base());
       this->alloc_.construct(itr.base(), *(itr + n));
-      move_cnt++;
+      ++move_cnt;
     }
     this->end_ -= n;
     return first;
@@ -592,7 +596,8 @@ class vector : protected VectorBase<T, Alloc> {
   }
 
   void clear(void) FT_NOEXCEPT_ {
-    for (iterator itr = begin(); itr != end(); itr++)
+    iterator itre = end();
+    for (iterator itr = begin(); itr != itre; ++itr)
       this->alloc_.destroy(itr.base());
     this->end_ = this->begin_;
   }

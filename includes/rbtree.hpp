@@ -99,24 +99,32 @@ struct RbTreeNode {
 };
 
 template <typename Value>
+class RbTreeIterator;
+
+template <typename Value>
 class RbTreeConstIterator {
  private:
-  RbTreeNode<Value>* current_;
+  typedef RbTreeNode<Value>* NodePtr_;
+
+  NodePtr_ current_;
 
  public:
   typedef bidirectional_iterator_tag iterator_category;
-  typedef Value value_type;
-  typedef const Value& reference;
-  typedef const Value* pointer;
+  typedef typename remove_cv<Value>::type value_type;
+  typedef const value_type& reference;
+  typedef const value_type* pointer;
   typedef ptrdiff_t difference_type;
 
   // Constructors
   RbTreeConstIterator(void) : current_() {}
 
-  RbTreeConstIterator(RbTreeNode<Value>* itr) : current_(itr) {}
+  RbTreeConstIterator(NodePtr_ itr) : current_(itr) {}
 
   RbTreeConstIterator(const RbTreeConstIterator& original)
       : current_(original.current_) {}
+
+  RbTreeConstIterator(const RbTreeIterator<Value>& itr)
+      : current_(itr.base()) {}
 
   // Destructor
   ~RbTreeConstIterator(void) {}
@@ -165,13 +173,15 @@ class RbTreeConstIterator {
     return lhs.base() != rhs.base();
   }
 
-  RbTreeNode<Value>* base(void) const { return current_; }
+  NodePtr_ base(void) const { return current_; }
 };
 
 template <typename Value>
 class RbTreeIterator {
  private:
-  RbTreeNode<Value>* current_;
+  typedef RbTreeNode<Value>* NodePtr_;
+
+  NodePtr_ current_;
 
  public:
   typedef bidirectional_iterator_tag iterator_category;
@@ -183,24 +193,27 @@ class RbTreeIterator {
   // Constructors
   RbTreeIterator(void) : current_() {}
 
-  RbTreeIterator(RbTreeNode<Value>* itr) : current_(itr) {}
+  RbTreeIterator(NodePtr_ itr) : current_(itr) {}
 
   RbTreeIterator(const RbTreeIterator& original)
       : current_(original.current_) {}
 
+  // RbTreeIterator(const RbTreeConstIterator<Value>& const_itr)
+  //     : current_(const_itr.base()) {}
+
   // Destructor
   ~RbTreeIterator(void) {}
 
-  // Copy Assignment operator overload
-  RbTreeIterator& operator=(const RbTreeIterator& rhs) FT_NOEXCEPT_ {
-    current_ = rhs.current_;
-    return *this;
-  }
-
-  // To const iterator
+  // to const converter
   template <typename U>
   operator RbTreeConstIterator<U>(void) {
     return (RbTreeConstIterator<U>(base()));
+  }
+
+  // Assignment operator overload
+  RbTreeIterator& operator=(const RbTreeIterator& rhs) FT_NOEXCEPT_ {
+    current_ = rhs.current_;
+    return *this;
   }
 
   // dereference & reference
@@ -242,7 +255,7 @@ class RbTreeIterator {
     return lhs.base() != rhs.base();
   }
 
-  RbTreeNode<Value>* base(void) const { return current_; }
+  NodePtr_ base(void) const { return current_; }
 };
 
 // SECTION : Red-Black Tree
@@ -569,8 +582,7 @@ class RbTree {
         cursor = successor;
         successor = cursor->FindSuccessor();
       }
-      cursor = cursor->FindSuccessor();
-      trailing = cursor->parent;
+      trailing = cursor;
     }
     NodePtr node = alloc_.allocate(1);
     alloc_.construct(node, Node(impl_.nil, false, kRed, key_value));
@@ -583,8 +595,8 @@ class RbTree {
     else
       trailing->right = node;
     AdjustAfterInsert_(node);
-    size_++;
-    if (node != root_) {
+    ++size_;
+    if (!(size_ == 1 && node == root_)) {
       if (comp_(node->key, impl_.min->key))
         impl_.min = node;
       else if (comp_(impl_.max->key, node->key)) {
@@ -605,6 +617,17 @@ class RbTree {
   void Delete(NodePtr node, const KeyType& key_value = KeyType()) {
     // bool deallocate_flag = true;
     if (node == NULL) node = Search(key_value).base();
+    if (size_ == 1 && node == root_) {
+      alloc_.destroy(root_);
+      alloc_.deallocate(root_, 1);
+      root_ = impl_.nil;
+      impl_.end = impl_.nil;
+      impl_.min = impl_.nil;
+      impl_.max = impl_.nil;
+      impl_.nil->end = impl_.nil;
+      --size_;
+      return;
+    }
     if (node == impl_.end) return;
     NodePtr replacement = impl_.nil;
     bool original_color = node->color;
