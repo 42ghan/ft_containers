@@ -108,37 +108,3 @@ int main(int argc, char** argv) {
   system("leaks ft_containers");
   return (0);
 }
-// ======================================================================================//
-
-// #include <iostream>
-// #include <string>
-// #include <vector>
-
-// #include "vector.hpp"
-
-// int main(void) {
-//   ft::vector<int> s(5, 1);
-//   ft::vector<int>::iterator citr;
-//   ft::vector<int>::const_iterator itr = s.begin();
-//   citr = itr;
-//   std::cout << *citr;
-//   // ft::vector<int> v(s.begin(), s.end());
-//   // v.push_back(1);
-//   // v.push_back(2);
-//   // v.push_back(3);
-//   // v.push_back(4);
-//   // v.push_back(5);
-//   // for (ft::vector<int>::const_iterator itr = v.begin(); itr != v.end();
-//   // itr++)
-//   //   std::cout << *itr << "\n";
-//   // v.reserve(100);
-//   // std::cout << s.size() << " " << v.size() << "\n";
-//   // std::cout << s.capacity() << " " << v.capacity() << "\n";
-//   // FIXME
-// }
-
-// // int main(void) {
-// //   std::vector<int> v(5, 1);
-// //   std::vector<int>::reverse_iterator ritr = v.rbegin();
-// //   std::cout << ritr.base().base() << "\n";
-// // }

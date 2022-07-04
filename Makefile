@@ -89,7 +89,12 @@ leaks		:
 
 .PHONY		:	test
 test		:
-				@make TEST=1
+				@make TEST=1 DEBUG=1
+				@echo $(CUT)$(L_BLUE)$(BOLD) Run tests! ✅$(RESET)
+
+.PHONY		:	test_std
+test_std	:
+				@make TEST=1 STD=1
 				@echo $(CUT)$(L_BLUE)$(BOLD) Run tests! ✅$(RESET)
 
 .PHONY		:	std
