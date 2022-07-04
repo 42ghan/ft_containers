@@ -42,16 +42,7 @@ class MutantStack : public ft::stack<T> {
   iterator end() { return this->c.end(); }
 };
 
-int main(int argc, char** argv) {
-  if (argc != 2) {
-    std::cerr << "Usage: ./test seed" << std::endl;
-    std::cerr << "Provide a seed please" << std::endl;
-    std::cerr << "Count value:" << COUNT << std::endl;
-    return 1;
-  }
-  const int seed = atoi(argv[1]);
-  srand(seed);
-
+void test(void) {
   ft::vector<std::string> vector_str;
   ft::vector<int> vector_int;
   ft::stack<int> stack_int;
@@ -90,7 +81,10 @@ int main(int argc, char** argv) {
   }
   std::cout << "should be constant with the same seed: " << sum << std::endl;
 
-  { ft::map<int, int> copy = map_int; }
+  {
+    ft::map<int, int> copy = map_int;
+    copy.erase(copy.begin(), copy.end());
+  }
   MutantStack<char> iterable_stack;
   for (char letter = 'a'; letter <= 'z'; letter++) iterable_stack.push(letter);
   for (MutantStack<char>::iterator it = iterable_stack.begin();
@@ -98,6 +92,20 @@ int main(int argc, char** argv) {
     std::cout << *it;
   }
   std::cout << std::endl;
+}
+
+int main(int argc, char** argv) {
+  if (argc != 2) {
+    std::cerr << "Usage: ./test seed" << std::endl;
+    std::cerr << "Provide a seed please" << std::endl;
+    std::cerr << "Count value:" << COUNT << std::endl;
+    return 1;
+  }
+  const int seed = atoi(argv[1]);
+  srand(seed);
+
+  test();
+  system("leaks ft_containers");
   return (0);
 }
 // ======================================================================================//

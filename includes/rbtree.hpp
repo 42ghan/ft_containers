@@ -356,6 +356,7 @@ class RbTree {
   }
 
   RbTree& operator=(const RbTree& rhs) {
+    ClearPostOrder(root_);
     impl_ = RbTreeImpl_(rhs.alloc_);
     root_ = impl_.nil;
     comp_ = rhs.comp_;
@@ -454,6 +455,19 @@ class RbTree {
   }
 
   // SECTION : delete utils
+  void DeleteLastNode_(void) {
+    alloc_.destroy(root_);
+    alloc_.deallocate(root_, 1);
+    alloc_.destroy(impl_.end);
+    alloc_.deallocate(impl_.end, 1);
+    root_ = impl_.nil;
+    impl_.end = impl_.nil;
+    impl_.min = impl_.nil;
+    impl_.max = impl_.nil;
+    impl_.nil->end = impl_.nil;
+    --size_;
+  }
+
   void Transplant_(NodePtr original, NodePtr replacement) {
     if (!comp_(impl_.min->key, original->key) &&
         !comp_(original->key, impl_.min->key))
@@ -544,8 +558,10 @@ class RbTree {
       root_ = impl_.nil;
       impl_.min = impl_.nil;
       impl_.max = impl_.nil;
-      alloc_.destroy(impl_.end);
-      alloc_.deallocate(impl_.end, 1);
+      if (impl_.nil != impl_.end) {
+        alloc_.destroy(impl_.end);
+        alloc_.deallocate(impl_.end, 1);
+      }
       impl_.end = impl_.nil;
     }
   }
@@ -615,17 +631,9 @@ class RbTree {
   // NOTE : will need multiple case specialization
   // x : replacement, y : check_color, z : node
   void Delete(NodePtr node, const KeyType& key_value = KeyType()) {
-    // bool deallocate_flag = true;
     if (node == NULL) node = Search(key_value).base();
     if (size_ == 1 && node == root_) {
-      alloc_.destroy(root_);
-      alloc_.deallocate(root_, 1);
-      root_ = impl_.nil;
-      impl_.end = impl_.nil;
-      impl_.min = impl_.nil;
-      impl_.max = impl_.nil;
-      impl_.nil->end = impl_.nil;
-      --size_;
+      DeleteLastNode_();
       return;
     }
     if (node == impl_.end) return;
@@ -650,23 +658,16 @@ class RbTree {
         Transplant_(temp, check_color->right);
         check_color->right = node->right;
         check_color->right->parent = check_color;
-        // FIXME
-        // alloc_.destroy(temp);
-        // alloc_.deallocate(temp, 1);
-        // deallocate_flag = false;
       }
       Transplant_(node, check_color);
       check_color->left = node->left;
       check_color->left->parent = check_color;
       check_color->color = node->color;
     }
-    // if (deallocate_flag) {
     alloc_.destroy(node);
     alloc_.deallocate(node, 1);
-    // }
     --size_;
     if (original_color == kBlack) AdjustAfterDelete_(replacement);
-    if (size_ == 0) impl_.end = impl_.nil;
   }
 
   // print

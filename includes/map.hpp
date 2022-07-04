@@ -91,7 +91,6 @@ class map {
   // Assignment operator overload
   map& operator=(const map& rhs) {
     // FIXME : check leak
-    clear();
     comp_ = rhs.comp_;
     alloc_ = rhs.alloc_;
     tree_ = Base_(rhs.tree_);
