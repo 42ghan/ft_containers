@@ -198,9 +198,6 @@ class RbTreeIterator {
   RbTreeIterator(const RbTreeIterator& original)
       : current_(original.current_) {}
 
-  // RbTreeIterator(const RbTreeConstIterator<Value>& const_itr)
-  //     : current_(const_itr.base()) {}
-
   // Destructor
   ~RbTreeIterator(void) {}
 

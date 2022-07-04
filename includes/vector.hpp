@@ -220,7 +220,7 @@ class vector : protected VectorBase<T, Alloc> {
                          InputIterator>::type last) {
     size_type n =
         static_cast<size_type>(std::distance<InputIterator>(first, last));
-    this->InitPointers_();
+    this->InitPointers_(n);
     for (; first != last; ++first) push_back(*first);
   }
 
@@ -501,13 +501,13 @@ class vector : protected VectorBase<T, Alloc> {
         temp.insert(temp.end(), position, end());
         swap(temp);
       } else {
-        for (reverse_iterator ritr = rbegin() - 1; ritr.base() != position;
+        ++this->end_;
+        for (reverse_iterator ritr = rbegin(); ritr.base() - 1 != position;
              ++ritr) {
-          this->alloc_.destroy(ritr.base().base());
-          this->alloc_.construct(ritr.base().base(), *(ritr + 1));
+          this->alloc_.destroy((ritr.base() - 1).base());
+          this->alloc_.construct((ritr.base() - 1).base(), *(ritr + 1));
         }
         this->alloc_.construct(position.base(), val);
-        ++this->end_;
       }
     }
     return insert_pos;
@@ -531,10 +531,10 @@ class vector : protected VectorBase<T, Alloc> {
         swap(temp);
       } else {
         this->end_ += n;
-        for (reverse_iterator ritr = rbegin() - 1; ritr.base() != position + n;
+        for (reverse_iterator ritr = rbegin(); ritr.base() - 1 != position + n;
              ++ritr) {
-          this->alloc_.destroy(ritr.base().base());
-          this->alloc_.construct(ritr.base().base(), *(ritr + 1));
+          this->alloc_.destroy((ritr.base() - 1).base());
+          this->alloc_.construct((ritr.base() - 1).base(), *(ritr + 1));
         }
         for (iterator itr = position; itr != position + n; ++itr) {
           this->alloc_.destroy(itr.base());
