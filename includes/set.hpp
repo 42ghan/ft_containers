@@ -78,10 +78,9 @@ class set {
 
   // Assignment operator overload (Deep copy)
   set& operator=(const set& rhs) {
-    // FIXME : check leak
-    // clear();
     comp_ = rhs.comp_;
     alloc_ = rhs.alloc_;
+    tree_.~Base_();
     tree_ = Base_(rhs.tree_);
     return *this;
   }
@@ -90,22 +89,11 @@ class set {
   // NOTE : check dereferencing when empty
   iterator begin(void) const FT_NOEXCEPT_ { return tree_.begin(); }
 
-  // const_iterator begin(void) const FT_NOEXCEPT_ { return tree_.begin(); }
-
   iterator end(void) const FT_NOEXCEPT_ { return tree_.end(); }
-
-  // const_iterator end(void) const FT_NOEXCEPT_ { return tree_.end(); }
 
   reverse_iterator rbegin(void) const FT_NOEXCEPT_ { return tree_.rbegin(); }
 
-  // const_reverse_iterator rbegin(void) const FT_NOEXCEPT_ {
-  //   return tree_.rbegin();
-  // }
-
   reverse_iterator rend(void) const FT_NOEXCEPT_ { return tree_.rend(); }
-
-  // const_reverse_iterator rend(void) const FT_NOEXCEPT_ { return tree_.rend();
-  // }
 
   // Capacity
   bool empty(void) const FT_NOEXCEPT_ { return (tree_.GetSize() == 0); }
@@ -170,9 +158,6 @@ class set {
   // Operations
   iterator find(const value_type& val) const { return tree_.Search(val); }
 
-  // const_iterator find(const value_type& val) const { return
-  // tree_.Search(val); }
-
   size_type count(const value_type& val) const {
     return iterator(tree_.Search(val)) == tree_.end() ? 0 : 1;
   }
@@ -181,26 +166,13 @@ class set {
     return tree_.LowerBound(val);
   }
 
-  // const_iterator lower_bound(const value_type& val) const {
-  //   return tree_.LowerBound(val);
-  // }
-
   iterator upper_bound(const value_type& val) const {
     return tree_.UpperBound(val);
   }
 
-  // const_iterator upper_bound(const value_type& val) const {
-  //   return tree_.UpperBound(val);
-  // }
-
   pair<iterator, iterator> equal_range(const value_type& val) const {
     return ft::make_pair(lower_bound(val), upper_bound(val));
   }
-
-  // pair<const_iterator, const_iterator> equal_range(
-  //     const value_type& val) const {
-  //   return ft::make_pair(lower_bound(val), upper_bound(val));
-  // }
 
   // Allocator
   allocator_type get_allocator(void) const FT_NOEXCEPT_ { return alloc_; }

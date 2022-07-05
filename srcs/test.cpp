@@ -16,11 +16,6 @@ namespace ft = std;
 
 #include <cstdlib>
 
-#define VECTOR 0
-#define STACK 1
-#define MAP 2
-#define SET 3
-
 template <typename T>
 void PrintVector(ft::vector<T>& v) {
   std::cout << "\nSIZE : " << v.size() << "\n";
@@ -170,6 +165,7 @@ void TestMap(void) {
   for (int i = 0; i < 10; ++i) v.push_back(ft::make_pair(i, 'a' + i));
   ft::map<int, char> m;
   ft::map<int, char> m1(v.begin(), v.end());
+  ft::map<int, char> m1_copy(m1);
 
   // assignment operator, empty, size, find & count
   std::cout << "MAP - ASSIGNMENT OPERATOR, EMPTY, SIZE, FIND & COUNT\n\n";
@@ -188,7 +184,7 @@ void TestMap(void) {
   std::cout << "\n========================================\n\n";
 
   // random order sorting, accessing, insert, erase
-  std::cout << "MAP - SORTING, ACCESSING, INSERT, ERAES\n\n";
+  std::cout << "SET - SORTING, ACCESSING, INSERT, ERASE\n\n";
   {
     ft::map<int, int> m2;
     for (int i = 0; i < 100; ++i) {
@@ -222,7 +218,21 @@ void TestMap(void) {
     std::cout << "SIZE : " << m2.size() << "\n";
   }
 
-  // swap
+  // swap & clear
+  std::cout << "SET - SWAP & CLEAR\n\n";
+  {
+    ft::map<int, int> m3;
+    ft::map<int, int> m4;
+    for (int i = 0; i < 10; ++i) m3.insert(ft::make_pair(i, i));
+    for (int i = 10; i < 20; ++i) m4.insert(ft::make_pair(i, i));
+    ft::swap(m3, m4);
+    ft::map<int, int>::iterator it3 = m3.begin(), ite3 = m3.end(),
+                                it4 = m4.begin(), ite4 = m4.end();
+    for (; it3 != ite3; ++it3) std::cout << (*it3).first << "\n";
+    for (; it4 != ite4; ++it4) std::cout << (*it4).first << "\n";
+    m3.clear();
+    std::cout << "SIZE AFTER CLEAR : " << m3.size() << "\n";
+  }
 }
 
 // SECTION : set tests
@@ -230,60 +240,72 @@ void TestSet(void) {
   ft::vector<int> v;
   v.reserve(10);
   for (int i = 0; i < 10; ++i) v.push_back(i);
-  ft::map<int, char> m;
-  ft::map<int, char> m1(v.begin(), v.end());
+  ft::set<int> s;
+  ft::set<int> s1(v.begin(), v.end());
+  ft::set<int> s1_copy(s1);
 
   // assignment operator, empty, size, find & count
-  std::cout << "MAP - ASSIGNMENT OPERATOR, EMPTY, SIZE, FIND & COUNT\n\n";
-  std::cout << "SIZE : " << m.size()
-            << ", EMPTY? : " << (m.empty() ? "YES" : "NO") << "\n";
-  std::cout << "SIZE : " << m1.size()
-            << ", EMPTY? : " << (m1.empty() ? "YES" : "NO") << "\n";
-  m = m1;
-  std::cout << "SIZE : " << m.size()
-            << ", EMPTY? : " << (m.empty() ? "YES" : "NO") << "\n";
-  int p = *(m.find(0));
-  std::cout << "KEY : " << p << ", COUNT : " << m.count(0) << "\n";
-  std::cout << "FOUND? : " << ((m.find(10) == m.end()) ? "NO" : "YES")
-            << ", COUNT : " << m.count(10) << "\n";
+  std::cout << "SET - ASSIGNMENT OPERATOR, EMPTY, SIZE, FIND & COUNT\n\n";
+  std::cout << "SIZE : " << s.size()
+            << ", EMPTY? : " << (s.empty() ? "YES" : "NO") << "\n";
+  std::cout << "SIZE : " << s1.size()
+            << ", EMPTY? : " << (s1.empty() ? "YES" : "NO") << "\n";
+  s = s1;
+  std::cout << "SIZE : " << s.size()
+            << ", EMPTY? : " << (s.empty() ? "YES" : "NO") << "\n";
+  int p = *(s.find(0));
+  std::cout << "KEY : " << p << ", COUNT : " << s.count(0) << "\n";
+  std::cout << "FOUND? : " << ((s.find(10) == s.end()) ? "NO" : "YES")
+            << ", COUNT : " << s.count(10) << "\n";
   std::cout << "\n========================================\n\n";
 
   // random order sorting, accessing, insert, erase
-  std::cout << "MAP - SORTING, ACCESSING, INSERT, ERAES\n\n";
+  std::cout << "SET - SORTING, ACCESSING, INSERT, ERASE\n\n";
   {
-    ft::map<int, int> m2;
+    ft::set<int> s2;
     for (int i = 0; i < 100; ++i) {
       int k = rand();
-      m2.insert(ft::make_pair(k, k));
+      s2.insert(k);
     }
-    ft::map<int, int>::iterator it = m2.begin(), ite = m2.end();
-    for (; it != ite; ++it) std::cout << (*it).first << "\n";
-    --(--(--it));
-    std::cout << "CHECK [] ACCESS FOR " << (*it).first << " : "
-              << m2[(*it).first] << "\n";
-    m2.insert(++(++(++m2.begin())), ft::make_pair(24075629, -42));
-    it = m2.begin();
-    ite = m2.end();
-    for (; it != ite; ++it) std::cout << (*it).first << "\n";
-    ft::vector<ft::pair<int, int> > v1;
+    ft::set<int, int>::iterator it = s2.begin(), ite = s2.end();
+    for (; it != ite; ++it) std::cout << *it << "\n";
+    s2.insert(++(++(++s2.begin())), 24075629);
+    it = s2.begin();
+    ite = s2.end();
+    for (; it != ite; ++it) std::cout << *it << "\n";
+    ft::vector<int> v1;
     v1.reserve(700);
-    for (int i = 0; i < 700; ++i) v.push_back(ft::make_pair(i, i));
-    m2.insert(v.begin(), v.end());
-    it = m2.begin();
-    for (; it != ite; ++it) std::cout << (*it).first << "\n";
-    std::cout << "SIZE : " << m2.size() << "\n";
-    std::cout << "ERASED? : " << m2.erase(700) << ", SIZE : " << m2.size()
+    for (int i = 0; i < 700; ++i) v.push_back(i);
+    s2.insert(v.begin(), v.end());
+    it = s2.begin();
+    for (; it != ite; ++it) std::cout << *it << "\n";
+    std::cout << "SIZE : " << s2.size() << "\n";
+    std::cout << "ERASED? : " << s2.erase(700) << ", SIZE : " << s2.size()
               << "\n";
-    std::cout << "ERASED? : " << m2.erase(699) << ", SIZE : " << m2.size()
+    std::cout << "ERASED? : " << s2.erase(699) << ", SIZE : " << s2.size()
               << "\n";
-    m2.erase(m2.begin());
-    m2.erase(--m2.end());
-    std::cout << "SIZE : " << m2.size() << "\n";
-    m2.erase(m2.begin(), m2.end());
-    std::cout << "SIZE : " << m2.size() << "\n";
+    s2.erase(s2.begin());
+    s2.erase(--s2.end());
+    std::cout << "SIZE : " << s2.size() << "\n";
+    s2.erase(s2.begin(), s2.end());
+    std::cout << "SIZE : " << s2.size() << "\n";
   }
 
-  // swap
+  // swap, clear
+  std::cout << "SET - SWAP & CLEAR\n\n";
+  {
+    ft::set<int> s3;
+    ft::set<int> s4;
+    for (int i = 0; i < 10; ++i) s3.insert(i);
+    for (int i = 10; i < 20; ++i) s4.insert(i);
+    ft::swap(s3, s4);
+    ft::set<int>::iterator it3 = s3.begin(), ite3 = s3.end(), it4 = s4.begin(),
+                           ite4 = s4.end();
+    for (; it3 != ite3; ++it3) std::cout << *it3 << "\n";
+    for (; it4 != ite4; ++it4) std::cout << *it4 << "\n";
+    s3.clear();
+    std::cout << "SIZE AFTER CLEAR : " << s3.size() << "\n";
+  }
 }
 
 int main(void) {
@@ -292,6 +314,6 @@ int main(void) {
   TestMap();
   TestSet();
 
-  system("leaks ft_containers");
+  // system("leaks ft_containers");
   return EXIT_SUCCESS;
 }

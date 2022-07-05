@@ -90,9 +90,9 @@ class map {
 
   // Assignment operator overload
   map& operator=(const map& rhs) {
-    // FIXME : check leak
     comp_ = rhs.comp_;
     alloc_ = rhs.alloc_;
+    tree_.~Base_();
     tree_ = Base_(rhs.tree_);
     return *this;
   }
@@ -174,10 +174,7 @@ class map {
 
   void swap(map& x) { tree_.swap(x.tree_); }
 
-  void clear(void) {
-    // FIXME : LEAK...
-    tree_.ClearPostOrder(tree_.GetRoot());
-  }
+  void clear(void) { tree_.ClearPostOrder(tree_.GetRoot()); }
 
   // Observers
   key_compare key_comp(void) const { return comp_; }
