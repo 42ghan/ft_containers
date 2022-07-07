@@ -86,7 +86,6 @@ class set {
   }
 
   // Iterators
-  // NOTE : check dereferencing when empty
   iterator begin(void) const FT_NOEXCEPT_ { return tree_.begin(); }
 
   iterator end(void) const FT_NOEXCEPT_ { return tree_.end(); }
@@ -135,8 +134,9 @@ class set {
 
   // range
   void erase(iterator first, iterator last) {
+    iterator tmp;
     for (; first != last;) {
-      iterator tmp = first;
+      tmp = first;
       ++tmp;
       tree_.Delete(first.base());
       first = tmp;
@@ -145,10 +145,7 @@ class set {
 
   void swap(set& x) { tree_.swap(x.tree_); }
 
-  void clear(void) {
-    // FIXME : LEAK...
-    tree_.ClearPostOrder(tree_.GetRoot());
-  }
+  void clear(void) { tree_.ClearPostOrder(tree_.GetRoot()); }
 
   // Observers
   key_compare key_comp(void) const { return comp_; }

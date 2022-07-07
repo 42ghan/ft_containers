@@ -164,8 +164,9 @@ class map {
 
   // range
   void erase(iterator first, iterator last) {
+    iterator tmp;
     for (; first != last;) {
-      iterator tmp = first;
+      tmp = first;
       ++tmp;
       tree_.Delete(first.base());
       first = tmp;
