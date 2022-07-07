@@ -8,8 +8,8 @@
 #ifndef FT_CONTAINERS_INCLUDES_RBTREE_HPP
 #define FT_CONTAINERS_INCLUDES_RBTREE_HPP
 
+// #include <iostream>
 #include <functional>
-#include <iostream>
 #include <memory>
 
 #include "iterator_traits.hpp"
@@ -72,10 +72,7 @@ struct RbTreeNode {
     if (node->is_nil) return node->end;
     if (!node->right->is_nil) {
       pointer ret = Min(node->right);
-      if (ret->is_nil)
-        return ret->end;
-      else
-        return ret;
+      return (ret->is_nil) ? ret->end : ret;
     };
     pointer p = node->parent;
     while (!p->is_nil && node == p->right) {
@@ -368,12 +365,8 @@ class RbTree {
   // Destructor
   ~RbTree(void) {
     ClearPostOrder(root_);
-    alloc_.destroy(impl_.nil);
-    alloc_.deallocate(impl_.nil, 1);
-    if (impl_.nil != impl_.end) {
-      alloc_.destroy(impl_.end);
-      alloc_.deallocate(impl_.end, 1);
-    }
+    FreeResource_(impl_.nil);
+    if (impl_.nil != impl_.end) FreeResource_(impl_.end);
   }
 
  private:
@@ -452,11 +445,15 @@ class RbTree {
   }
 
   // SECTION : delete utils
+  template <typename T>
+  void FreeResource_(T* ptr) {
+    alloc_.destroy(ptr);
+    alloc_.deallocate(ptr, 1);
+  }
+
   void DeleteLastNode_(void) {
-    alloc_.destroy(root_);
-    alloc_.deallocate(root_, 1);
-    alloc_.destroy(impl_.end);
-    alloc_.deallocate(impl_.end, 1);
+    FreeResource_(root_);
+    FreeResource_(impl_.end);
     root_ = impl_.nil;
     impl_.end = impl_.nil;
     impl_.min = impl_.nil;
@@ -548,20 +545,17 @@ class RbTree {
     if (node == impl_.nil) return;
     ClearPostOrder(node->left);
     ClearPostOrder(node->right);
-    alloc_.destroy(node);
-    alloc_.deallocate(node, 1);
+    FreeResource_(node);
     --size_;
     if (size_ == 0) {
       root_ = impl_.nil;
       impl_.min = impl_.nil;
       impl_.max = impl_.nil;
-      if (impl_.nil != impl_.end) {
-        alloc_.destroy(impl_.end);
-        alloc_.deallocate(impl_.end, 1);
-      }
+      if (impl_.nil != impl_.end) FreeResource_(impl_.end);
       impl_.end = impl_.nil;
     }
   }
+
   // search
   iterator Search(const KeyType& key_value) const {
     NodePtr node = root_;
@@ -634,46 +628,44 @@ class RbTree {
       return;
     }
     if (node == impl_.end) return;
-    NodePtr replacement = impl_.nil;
+    NodePtr x = impl_.nil;
     bool original_color = node->color;
     if (node->left == impl_.nil) {
-      replacement = node->right;
+      x = node->right;
       Transplant_(node, node->right);
     } else if (node->right == impl_.nil) {
-      replacement = node->left;
+      x = node->left;
       Transplant_(node, node->left);
     } else {
-      NodePtr check_color = node;
-      check_color = Node::Min(node->right);
-      original_color = check_color->color;
-      replacement = check_color->right;
-      if (check_color->parent == node)
-        replacement->parent = check_color;
+      NodePtr y = node;
+      y = Node::Min(node->right);
+      original_color = y->color;
+      x = y->right;
+      if (y->parent == node)
+        x->parent = y;
       else {
-        NodePtr temp = check_color;
-        replacement = check_color->right;
-        Transplant_(temp, check_color->right);
-        check_color->right = node->right;
-        check_color->right->parent = check_color;
+        x = y->right;
+        Transplant_(y, y->right);
+        y->right = node->right;
+        y->right->parent = y;
       }
-      Transplant_(node, check_color);
-      check_color->left = node->left;
-      check_color->left->parent = check_color;
-      check_color->color = node->color;
+      Transplant_(node, y);
+      y->left = node->left;
+      y->left->parent = y;
+      y->color = node->color;
     }
-    alloc_.destroy(node);
-    alloc_.deallocate(node, 1);
+    FreeResource_(node);
     --size_;
-    if (original_color == kBlack) AdjustAfterDelete_(replacement);
+    if (original_color == kBlack) AdjustAfterDelete_(x);
   }
 
   // print
-  void PrintInOrder(NodePtr node, int depth = 0) {
-    if (node == impl_.nil) return;
-    PrintInOrder(node->left, depth + 1);
-    std::cout << node->key << " ";
-    PrintInOrder(node->right, depth + 1);
-  }
+  // void PrintInOrder(NodePtr node, int depth = 0) {
+  //   if (node == impl_.nil) return;
+  //   PrintInOrder(node->left, depth + 1);
+  //   std::cout << node->key << " ";
+  //   PrintInOrder(node->right, depth + 1);
+  // }
 
   // iterators
   iterator begin(void) FT_NOEXCEPT_ { return iterator(impl_.min); }
@@ -774,19 +766,19 @@ class RbTree {
   // max allocation size
   size_type MaxSize(void) const { return alloc_.max_size(); }
 
-  void print_tree(const std::string& prefix, NodePtr x, bool isLeft) {
-    if (x != impl_.nil) {
-      std::cout << prefix;
-      std::cout << (isLeft ? "L├──" : "R└──");
-      if (x->color == kRed) {
-        std::cout << R << x->key.first << RESET << "\n";
-      } else {
-        std::cout << B << x->key.first << RESET << "\n";
-      }
-      print_tree(prefix + (isLeft ? " │   " : "     "), x->left, true);
-      print_tree(prefix + (isLeft ? " │   " : "     "), x->right, false);
-    };
-  }
+  // void print_tree(const std::string& prefix, NodePtr x, bool isLeft) {
+  //   if (x != impl_.nil) {
+  //     std::cout << prefix;
+  //     std::cout << (isLeft ? "L├──" : "R└──");
+  //     if (x->color == kRed) {
+  //       std::cout << R << x->key.first << RESET << "\n";
+  //     } else {
+  //       std::cout << B << x->key.first << RESET << "\n";
+  //     }
+  //     print_tree(prefix + (isLeft ? " │   " : "     "), x->left, true);
+  //     print_tree(prefix + (isLeft ? " │   " : "     "), x->right, false);
+  //   };
+  // }
 };
 }  // namespace ft
 

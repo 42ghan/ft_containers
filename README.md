@@ -72,6 +72,38 @@ There are two types of containers, sequence containers and assiciative container
   - optimises compilation
 - In C++98 standard, only the dynamic exception specification using `throw()` is available instead of `noexcept`. Since such method does not improve performance like the `noexcept` does, a question arises whether `throw()` should be utilized in this implementation [(ref. StackOverflow)](https://stackoverflow.com/questions/13841559/deprecated-throw-list-in-c11). However, `throw()` was used for exiting the program by calling `std::unexpected -> std::terminate` when exception is thrown from a **NON-THROWING** function was deemed more important than slight performance improvement.
 
+### `explicit` specifier
+
+- `explicit` specifiers in front of constructors specify that the constructors cannot be used for implicit conversions and copy-initialization. The specifier can be used to prevent unwanted and unexpected conversions.
+- A constructor without `explicit` specifier is called a converting constructor.
+
+```c++
+#include <iostream>
+
+template <typename T>
+void PrintNum(T t) {
+  std::cout << t.n << "\n";
+}
+
+class Implicit {
+ public:
+  int n;
+  Implicit(int x) : n(x) {}
+};
+
+class Explicit {
+ public:
+  int n;
+  explicit Explicit(int x) : n(x) {}
+};
+
+int main(void) {
+  int a = 42;
+  PrintNum<Implicit>(a); // OK - uses Implicit's constructor for implicit conversion
+  PrintNum<Explicit>(a); // error - compile error occurs
+}
+```
+
 ### Iterators
 
 - An iterator is an object that points to some element in a range of elements (e.g. a pointer). By using operators (at least ++ and \*), it can iterate through the elements of that range.
@@ -99,7 +131,7 @@ There are two types of containers, sequence containers and assiciative container
 - There exist five different categories of iterators and their hierarchy is like the diagram below.
 <figure>
 <p align="center">
-  <img src="assets/iterator_categories.png" style="width: 80%; height: 80%; "></p>
+  <img src="assets/iterator_categories.png" style="width: 60%; height: 60%; "></p>
   <figcaption align="center" style="font-weight: bold;">hierarchy between each iterator category (refer to the table in <a href="https://www.cplusplus.com/reference/iterator/">cplusplus.com</a> for further details)</figcaption>
   </figure>
 
@@ -222,11 +254,52 @@ struct is_base_of
 
 ### Red-Black Tree
 
-- Red-Black Tree is a form of Binary Search Tree, which keeps the tree structure balanced
+- Red-Black Tree is a form of Binary Search Tree, which keeps the tree structure balanced by continually rotating and/or recoloring nodes to preserve following properties:
+  - #1 Every node is either red/black.
+  - #2 The root node is black.
+  - #3 Every leaf (NIL) is black.
+  - #4 If a parent node is red, both its children are black.
+  - #5 All simple paths from any node to its descendant leaves contain the same number of black nodes (same black heights).
+- For three basic operations of BST, Search, Insert, and Delete, time complexity of O(log n) is guaranteed for the worst cases.
+- It was invented by Rudolf Bayer, a German computer scientist, in 1972.
+
+#### Why Red-Black Tree?
+
+- Most of the BST operations take O(h), where h is the height of the tree. However, if the elements are inserted in sorted order, the tree becomes skewed, and in the worst case, the cost of operations become O(n). Balanced tree structures such as Red-Black Tree or AVL Tree are preferred for they internally balance the tree to preserve the height of the tree to log n.
+- Both Red-Black Tree and AVL Tree are balanced, then in what case is Red-Black Tree preferred? Since AVL Tree rebalances every time the left-right height difference is greater than 1, AVL Tree remains more balanced than Red-Black Tree. But AVL Tree may cause more rotations during insertion and deletion. So if frequent insertions and deletions are expected, Red-Black Tree is the better option.
+
+#### Rotations
+
+- Red-Black Tree's properties are kept by rotating and/or recoloring nodes. There are two types of rotations (Left Rotate/ Right Rotate).
+<figure>
+<p align="center">
+  <img src="assets/rotation.png" style="width: 60%; height: 60%; "></p>
+  <figcaption align="center" style="font-weight: bold;">Left Rotation & Right Rotation of binary tree</figcaption>
+  </figure>
 
 #### Insertion Cases
 
+- The inserted node is initially colored red.
+- If the tree is empty, at time of insertion, just recolor the root to black.
+- If the inserted node's parent is black, no properties have been violated.
+- Else, there are three cases (six actually, but three are symmmetrical to the other three) that require fixup after normal BST insertion.
+- **CASE 1** : The inserted node `z`'s uncle is red (Only recoloring)
+  - The property #4 is violated.
+  - Color both `z.parent` and `y` black, and `z.parent.parent` red.
+  - Now call `z.parent.parent` a new `z` and check its uncle's color, if it is red, repeat the process up the tree until all properties are met.
+- **CASE 2** : `z`'s uncle y is black and `z` is a right child
+- **CASE 3** : `z`'s uncle y is black and `z` is a left child
+  - The property #4 is violated.
+  - In case 2, left rotation on the inserted node is userd to transform the situation into case 3.
+  - Color `z.parent` black and `z.parent.parent` red and then right rotate on the `z.parent.parent`.
+
 #### Deletion Cases
+
+- The first step is the same as normal BST.
+  - if no child, remove the node
+  - if one child, elevate the child to take the deleted node's position
+  - if two children, find the successor and let the successor replace the deleted node's position
+- The deletion operation of normal BST may not preserve Red-Black Tree's properties.
 
 ## Vector
 
@@ -542,7 +615,7 @@ bool operator>=(const stack<T, Container>& lhs,
 
 ## Map
 
-## Set (Red Black Tree)
+## Set
 
 ## `enable_if` & `is_integral`
 
@@ -561,9 +634,9 @@ bool operator>=(const stack<T, Container>& lhs,
 ### STL Containers
 
 - [x] vector
-- [ ] map
+- [x] map
 - [x] stack (DIY vector class as default underlying container)
-- [ ] set (Red-Black Tree)
+- [x] set (Red-Black Tree)
 
 ### iterators & algorithms
 

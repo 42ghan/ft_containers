@@ -105,6 +105,6 @@ int main(int argc, char** argv) {
   srand(seed);
 
   test();
-  system("leaks ft_containers");
+  // system("leaks ft_containers");
   return (0);
 }
