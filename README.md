@@ -9,23 +9,59 @@ DIY C++ containers implementation (C++98)
 - [STL Containers](#stl-containers)
 - [Background Information](#background-information)
   - [Allocator](#allocator)
-  - [`noexcept`/`throw()`](#noexceptthrow)
+  - [`noexcept`/`throw()`](#-noexcept---throw---)
+  - [`explicit` specifier](#-explicit--specifier)
   - [Iterators](#iterators)
-    - [`iterator_traits`](#iterator-traits)
+    - [iterator_traits](#iterator-traits)
     - [Categories](#categories)
   - [Exception Safety](#exception-safety)
-  - [SFINAE & `enable_if`](#sfinae--enableif)
-  - [Red Black Tree](#red-black-tree)
+  - [RAII](#raii)
+  - [SFINAE & `enable_if`](#sfinae----enable-if-)
+  - [`is_base_of`](#-is-base-of-)
+  - [Red-Black Tree](#red-black-tree)
+    - [Why Red-Black Tree?](#why-red-black-tree-)
+    - [Rotations](#rotations)
+    - [Insertion Cases](#insertion-cases)
+    - [Deletion Cases](#deletion-cases)
+    - [`RbTreeImpl_` & `RbTreeIterator`](#-rbtreeimpl------rbtreeiterator-)
 - [Vector](#vector)
+  - [Class Template](#class-template)
+  - [Features](#features)
+  - [Why is there `__vector_base` class?](#why-is-there----vector-base--class-)
+  - [Implementation of container specific iterator](#implementation-of-container-specific-iterator)
+  - [Member Types](#member-types)
+  - [Member Functions](#member-functions)
+    - [Constructors & Destructors](#constructors---destructors)
+    - [Iterators](#iterators-1)
+    - [Capacity](#capacity)
+    - [Element Access](#element-access)
+    - [Modifiers](#modifiers)
+    - [Getter](#getter)
 - [Stack](#stack)
-- [Map](#stack)
-- [Set](#set-red-black-tree)
-- [`enable_if` & `is_integral`](#enableif--isintegral)
-- [Algorithm & Utility](#algorithm--utility)
-  - [`lexicographical_compare`](#lexicographicalcompare)
-  - [`equal`](#equal)
-  - [`pair`](#pair)
-  - [`make_pair`](#makepair)
+  - [Features](#features-1)
+  - [Member Types](#member-types-1)
+  - [Member Functions](#member-functions-1)
+  - [Non-Member Functions (Relation Operators)](#non-member-functions--relation-operators-)
+- [Map & Set](#map---set)
+  - [Class Templates](#class-templates)
+  - [Features](#features-2)
+  - [Member Types](#member-types-2)
+  - [Allocator Rebind](#allocator-rebind)
+  - [Member Functions](#member-functions-2)
+    - [Constructors & Destructors](#constructors---destructors-1)
+    - [Iterators](#iterators-2)
+    - [Capacity](#capacity-1)
+    - [Element Access (MAP ONLY)](#element-access--map-only-)
+    - [Modifiers](#modifiers-1)
+    - [Observers](#observers)
+    - [Operations](#operations)
+    - [Getter](#getter-1)
+  - [Non-Member Functions](#non-member-functions)
+- [Algorithm & Utility](#algorithm---utility)
+  - [`lexicographical_compare`](#-lexicographical-compare-)
+  - [`equal`](#-equal-)
+  - [`pair` & `make_pair`](#-pair-----make-pair-)
+- [References](#references)
 
 ## Style Guide
 
@@ -833,43 +869,224 @@ size_type max_size() const FT_NOEXCEPT_;
 // subscript operator overload :
 // if k == the key of an element,
 // returns a reference to its mapped value
+// even if k does not match the key of any element in the container,
+// a new element with that key is inserted with default mapped value
+// equivalent to
+//(*((this->insert(make_pair(k,mapped_type()))).first)).second
 mapped_type& operator[](const key_type& key);
 ```
 
+- **Exception Safety** :
+  - strong guarantee
+  - **UB** if inappropriate arguments have been passed to `allocator::construct` for the element constructions, or the range specified by [first,last) is not valid.
+
 #### Modifiers
+
+```c++
+// same prototypes and functionalities for both set and map
+
+// insert : insert elements, sorted after insertion
+// #1 single element : returns a pair of iterator and insertion check
+// the first element iterator points to either the inserted/already existing node
+// the second element is false if the key already exists
+pair<iterator, bool> insert(const value_type& val);
+
+// #2 hint : single element at a hinted position
+// optimal if the position given precedes the inserted key
+iterator insert(iterator position, const value_type& val);
+
+// #3 range : inserts [first, last)
+template <typename InputIterator>
+void insert(InputIterator first,
+            typename enable_if<is_input_iterator<InputIterator>::value,
+                                InputIterator>::type last);
+
+// erase : delete elements
+// #1 single element : removes the element at the given position
+// cannot erase end() position
+void erase(iterator position);
+
+// # 2 single element with a given key : if erased returns 1, else 0
+size_type erase(const key_type& key);
+
+// range : erases [first, last)
+void erase(iterator first, iterator last);
+
+// swap : contents are exchanged, iterators, pointers, and references remain valid
+void swap(map& x);
+
+// clear : removes all elements
+void clear(void);
+```
+
+- **Exception Safety** :
+  - `insert`
+    - strong guarantee, for #1
+    - else basic guarantee
+    - **UB** if inappropriate arguments have been passed to `allocator::construct` for the element constructions, or the range specified by [first,last) is not valid.
+  - `erase`
+    - Unless the container's comparison object throws, non-throwing
+    - else if a single element, strong guarantee
+    - else basic guarantee
+    - **UB** if inappropriate arguments have been passed to `allocator::construct` for the element constructions, or the range specified by [first,last) is not valid.
+  - `swap`
+    - non-throwing
+  - `clear`
+    - non-throwing
 
 #### Observers
 
+```c++
+// same prototypes and functionalities for both set and map
+// each function returns a copy of `key_compare` object and `value_compare` object
+// for set, both `key_compare` and `value_compare` are defined the same
+// note that `value_compare` type for map is a comparison object for
+// the key of pair<Key, Value>, not for comparison of Value
+
+key_compare key_comp(void) const;
+value_compare value_comp(void) const;
+```
+
+- **Exception Safety** :
+  - strong guarantee
+
 #### Operations
 
+```c++
+// same prototypes and functionalities for both set and map
+// set's iterator == const_ierator, therefore no separate const version is implemented
+
+// find : searches the element with the key the same as k, returns iterator pointing to it
+// end is returned if there is no matching
+iterator find(const key_type& k);
+const_iterator find(const key_type& k) const;
+
+// count : returns how many of the elements with the key, k, exist
+size_type count(const key_type& k) const;
+
+// lower_bound : returns the first element that is equal or goes after the element with the key
+iterator lower_bound(const key_type& key);
+const_iterator lower_bound(const key_type& key) const;
+
+// upper_bound : returns the first element that goes after the element with the key
+iterator upper_bound(const key_type& key);
+const_iterator upper_bound(const key_type& key);
+
+// equal_range : returns bounds of elements that have the same key as the key
+// if no match is found, length of the bound is 0
+pair<const_iterator, const_iterator> equal_range(const key_type& key) const;
+pair<iterator, iterator> equal_range(const key_type& key);
+```
+
+- **Exception Safety** :
+  - strong guarantee
+
 #### Getter
+
+```C++
+// get_allocator : returns a copy of the allocator object.
+allocator_type get_allocator(void) const FT_NOEXCEPT_;
+```
+
+- **Exception Safety** :
+  - non-throwing
+
+### Non-Member Functions
+
+```c++
+template <typename Key, typename Compare, typename Alloc>
+bool operator==(const set<Key, Compare, Alloc>& lhs,
+                const set<Key, Compare, Alloc>& rhs) ;
+}
+
+template <typename Key, typename Compare, typename Alloc>
+bool operator!=(const set<Key, Compare, Alloc>& lhs,
+                const set<Key, Compare, Alloc>& rhs) ;
+
+template <typename Key, typename Compare, typename Alloc>
+bool operator<(const set<Key, Compare, Alloc>& lhs,
+               const set<Key, Compare, Alloc>& rhs) ;
+}
+
+template <typename Key, typename Compare, typename Alloc>
+bool operator<=(const set<Key, Compare, Alloc>& lhs,
+                const set<Key, Compare, Alloc>& rhs) ;
+
+template <typename Key, typename Compare, typename Alloc>
+bool operator>(const set<Key, Compare, Alloc>& lhs,
+               const set<Key, Compare, Alloc>& rhs) ;
+
+template <typename Key, typename Compare, typename Alloc>
+bool operator>=(const set<Key, Compare, Alloc>& lhs,
+                const set<Key, Compare, Alloc>& rhs) ;
+
+template <typename Key, typename Compare, typename Alloc>
+void swap(set<Key, Compare, Alloc>& x, set<Key, Compare, Alloc>& y) ;
+```
+
+```c++
+template <typename Key, typename T, typename Compare, typename Alloc>
+bool operator==(const map<Key, T, Compare, Alloc>& lhs,
+                const map<Key, T, Compare, Alloc>& rhs) ;
+}
+
+template <typename Key, typename T, typename Compare, typename Alloc>
+bool operator!=(const map<Key, T, Compare, Alloc>& lhs,
+                const map<Key, T, Compare, Alloc>& rhs);
+
+template <typename Key, typename T, typename Compare, typename Alloc>
+bool operator<(const map<Key, T, Compare, Alloc>& lhs,
+               const map<Key, T, Compare, Alloc>& rhs);
+}
+
+template <typename Key, typename T, typename Compare, typename Alloc>
+bool operator<=(const map<Key, T, Compare, Alloc>& lhs,
+                const map<Key, T, Compare, Alloc>& rhs);
+
+template <typename Key, typename T, typename Compare, typename Alloc>
+bool operator>(const map<Key, T, Compare, Alloc>& lhs,
+               const map<Key, T, Compare, Alloc>& rhs);
+
+template <typename Key, typename T, typename Compare, typename Alloc>
+bool operator>=(const map<Key, T, Compare, Alloc>& lhs,
+                const map<Key, T, Compare, Alloc>& rhs);
+
+template <typename Key, typename T, typename Compare, typename Alloc>
+void swap(map<Key, T, Compare, Alloc>& x, map<Key, T, Compare, Alloc>& y);
+```
 
 ## Algorithm & Utility
 
 ### `lexicographical_compare`
 
+- Returns ture if [first1, last1) compares lexicographically less than [first2, last2)
+
+```c++
+template <class InputIterator1, class InputIterator2>
+bool lexicographical_compare(InputIterator1 first1, InputIterator1 last1,
+                             InputIterator2 first2, InputIterator2 last2);
+
+template <class InputIterator1, class InputIterator2, class Compare>
+bool lexicographical_compare(InputIterator1 first1, InputIterator1 last1,
+                             InputIterator2 first2, InputIterator2 last2,
+                             Compare comp);
+```
+
 ### `equal`
+
+- Test whether the elements in two ranges are equal.
+
+```c++
+template <class InputIterator1, class InputIterator2>
+bool equal(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2);
+
+template <class InputIterator1, class InputIterator2, class BinaryPredicate>
+bool equal(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, BinaryPredicate pred);
+```
 
 ### `pair` & `make_pair`
 
-## TODO
-
-### STL Containers
-
-- [x] vector
-- [x] map
-- [x] stack (DIY vector class as default underlying container)
-- [x] set (Red-Black Tree)
-
-### iterators & algorithms
-
-- [x] iterators_traits
-- [x] reverse_iterator
-- [x] enable_if
-- [x] is_integral
-- [x] equal, lexicographical_compare
-- [x] std::pair
-- [x] std::make_pair
+- `pair` couples a pair of values(`pair::first`, `pair::second`), of two same or different types, in a class.
 
 ## References
 
@@ -882,9 +1099,3 @@ mapped_type& operator[](const key_type& key);
   by Sorush Khajepor](https://iamsorush.com/posts/cpp-meta-function/)
 - [Bjarne Stroustrup (2000). The C++ programming language. Boston: Addison-Wesley.](https://www.stroustrup.com/3rd_safe.pdf)
 - [H, T. (2009). Introduction to algorithms. Cambridge, Mass.: Mit Press.] (https://edutechlearners.com/download/Introduction_to_algorithms-3rd%20Edition.pdf)
-
-‌
-
-```
-
-```
