@@ -86,7 +86,7 @@ class map {
         tree_(Base_(original.tree_)) {}
 
   // Destructor
-  ~map(void) {}
+  ~map(void) FT_NOEXCEPT_ {}
 
   // Assignment operator overload
   map& operator=(const map& rhs) {
@@ -125,10 +125,8 @@ class map {
 
   // Element Access
   mapped_type& operator[](const key_type& key) {
-    NodePtr_ node = tree_.Search(ft::make_pair(key, mapped_type())).base();
-    return (!node->is_nil)
-               ? (*(insert(ft::make_pair(key, mapped_type())).first)).second
-               : node->key.second;
+    // NodePtr_ node = tree_.Search(ft::make_pair(key, mapped_type())).base();
+    return (*(insert(ft::make_pair(key, mapped_type())).first)).second;
   }
 
   // Modifiers
@@ -265,7 +263,6 @@ template <typename Key, typename T, typename Compare, typename Alloc>
 void swap(map<Key, T, Compare, Alloc>& x, map<Key, T, Compare, Alloc>& y) {
   x.swap(y);
 }
-
 }  // namespace ft
 
 #endif

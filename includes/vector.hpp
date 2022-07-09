@@ -182,7 +182,6 @@ class VectorBase {
     end_of_storage_ = begin_ + n;
   }
 
- public:
   explicit VectorBase(const allocator_type& alloc = allocator_type())
       : alloc_(alloc) {
     InitPointers_(1);

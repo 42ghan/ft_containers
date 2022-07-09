@@ -35,7 +35,7 @@ DIY C++ containers implementation (C++98)
 
 STL Containers library provide a collection of class templates and algorithms so that programmers can easily implement comman data structures and manipulate them. The container manages its storage space by allocating and/or deallocating memory depending on how many elements are present in it. Its elements are accessed either directly or through iterators by using member functions.
 
-There are two types of containers, sequence containers and assiciative containers. In sequence containers, data structures can be accessed sequentially. Associative containers provide sorted data structures that can be quickly searched (O(log n) complexity). There also are three container adaptors, stack (LIFO), queue (FIFO), and priority queue, that are not pure containers, but provide different interfaces of sequential containers by utilizing them in their implementations.
+There are two types of containers, sequence containers and assiciative containers. In sequence containers, data structures can be accessed sequentially. Associative containers provide sorted data structures that can be quickly searched (`O(log n`) complexity). There also are three container adaptors, stack (LIFO), queue (FIFO), and priority queue, that are not pure containers, but provide different interfaces of sequential containers by utilizing them in their implementations.
 
 - Sequence containers
   - [vector](https://cplusplus.com/reference/vector/vector/)
@@ -260,12 +260,12 @@ struct is_base_of
   - #3 Every leaf (NIL) is black.
   - #4 If a parent node is red, both its children are black.
   - #5 All simple paths from any node to its descendant leaves contain the same number of black nodes (same black heights).
-- For three basic operations of BST, Search, Insert, and Delete, time complexity of O(log n) is guaranteed for the worst cases.
+- For three basic operations of BST, Search, Insert, and Delete, time complexity of `O(log n)` is guaranteed for the worst cases.
 - It was invented by Rudolf Bayer, a German computer scientist, in 1972.
 
 #### Why Red-Black Tree?
 
-- Most of the BST operations take O(h), where h is the height of the tree. However, if the elements are inserted in sorted order, the tree becomes skewed, and in the worst case, the cost of operations become O(n). Balanced tree structures such as Red-Black Tree or AVL Tree are preferred for they internally balance the tree to preserve the height of the tree to log n.
+- Most of the BST operations take `O(h)`, where h is the height of the tree. However, if the elements are inserted in sorted order, the tree becomes skewed, and in the worst case, the cost of operations become `O(n)`. Balanced tree structures such as Red-Black Tree or AVL Tree are preferred for they internally balance the tree to preserve the height of the tree to `log n`.
 - Both Red-Black Tree and AVL Tree are balanced, then in what case is Red-Black Tree preferred? Since AVL Tree rebalances every time the left-right height difference is greater than 1, AVL Tree remains more balanced than Red-Black Tree. But AVL Tree may cause more rotations during insertion and deletion. So if frequent insertions and deletions are expected, Red-Black Tree is the better option.
 
 #### Rotations
@@ -292,6 +292,7 @@ struct is_base_of
   - The property #4 is violated.
   - In case 2, left rotation on the inserted node is userd to transform the situation into case 3.
   - Color `z.parent` black and `z.parent.parent` red and then right rotate on the `z.parent.parent`.
+- Refer to pseudo-code from [section 13.3 of Introduction to Algorithms](https://edutechlearners.com/download/Introduction_to_algorithms-3rd%20Edition.pdf) for details
 
 #### Deletion Cases
 
@@ -299,9 +300,43 @@ struct is_base_of
   - if no child, remove the node
   - if one child, elevate the child to take the deleted node's position
   - if two children, find the successor and let the successor replace the deleted node's position
-- The deletion operation of normal BST may not preserve Red-Black Tree's properties.
+- The deletion operation of normal BST may not preserve Red-Black Tree's properties. If the removed node is red, the properties are kept, but if the removed node is black, three problems may arise. (let's call the removed node `y`, the node that will move into `y`'s original position `x`)
+  - if `y` had been the root, and a red child of `y` becomes the new root (violation of property #2)
+  - `x` and `x.parent` are red (violation of property #4)
+  - removing `y` causes any simple path that contained `y` lack a black node (violation of property #5)
+    - by saying that `x` is 'extra black' or 'doubly black' (see it as `y`'s blackness has been pushed to `x`), this violation can be corrected. Yet, a node has to be either black or red and this problem is solved in fixup procedure.
+- Following are cases that require fixup after normal BST deletion required.
+- **CASE 1** `x`'s sibling `w` is red
+  - `w` must have black children.
+  - Switch colors of `w` and `x.parent`, then perform left rotation on `x.parent`.
+  - Now, the new sibling of `x` is black, thus CASE 1 -> CASE 2
+- **CASE 2** `x`'s sibling `w` is black, both `w`'s children are black
+
+  - Take one black off both `x` and `w` (`x` becomes singly black, `w` becomes red).
+  - Pass the blackness to `x.parent` and repeat the fixup procedure with `x.parent` as the new `x`.
+
+- **CASE 3** `x`'s sibling `w` is black, `w`'s left is red, right is black
+  - Switch colors of `w` and `w.left`, then perform right rotation on `w`.
+  - CASE 3 -> CASE 4
+- **CASE 4** `x`'s sibling `w` is black, `w`'s right is red
+  - Switch colors of `w` and `x.parent`.
+  - Make `w.right` black, then left rotate on `x.parent`.
+- Refer to pseudo-code from [section 13.4 of Introduction to Algorithms](https://edutechlearners.com/download/Introduction_to_algorithms-3rd%20Edition.pdf) for details
+
+#### `RbTreeImpl_` & `RbTreeIterator`
+
+- `map` and `set` have `bidirectional iterator`, therefore their base data structure `RbTree`'s iterator has been implemented to meet [`bidirectional iterator`'s requirements](https://cplusplus.com/reference/iterator/BidirectionalIterator/) (see the properties table).
+- `begin()` of the both containers point to the left-most/min key, and `end()` point to the position next to the right-most/max key. These positions need to be accessed at constant time complexity.
+- Therefore, a struct `RbTreeImpl_` was implemented in a private scope of `RbTree` in order to store meta data of the tree such as `min` node (for `begin()`), `max` node and `end` node (for `end()`), and the sentinel `nil` node.
+- The sentinel `nil` node was implemented, instead of just using `NULL` pointer, in order to make the nil node act as a black leaf node.
 
 ## Vector
+
+### Class Template
+
+```c++
+template < class T, class Alloc = allocator<T> > class vector : protected VectorBase<T, Alloc>;
+```
 
 ### Features
 
@@ -324,6 +359,7 @@ struct is_base_of
 ### Member Types
 
 ```C++
+// Base_ is VectorBase
 typedef T value_type;
 typedef typename Base_::allocator_type allocator_type;
 typedef typename Base_::alloc_traits alloc_traits;
@@ -367,7 +403,7 @@ vector(const vector& x);
 
 - **Exception Safety** : strong guarantee for the constructors & non-throwing for the destructor
 
-- **UNDEFINED BEHAVIOUR** in case inappropriate arguments have been passed to `allocator_traits::construct` for the element constructions, or the range specified by [first,last) is not valid.
+- **UB** if inappropriate arguments have been passed to `allocator::construct` for the element constructions, or the range specified by [first,last) is not valid.
 
 - `explicit` specifier specifies that the constructors followed by the keyword cannot be used for implicit conversions and copy-initialization.
 
@@ -502,12 +538,12 @@ void clear(void) FT_NOEXCEPT_;
 - **Exception Safety** :
   - `assign`
     - basic guarantee
-    - UB in case inappropriate arguments have been passed to `allocator_traits::construct` for the element constructions, or the range specified by [first,last) is not valid.
+    - UB if inappropriate arguments have been passed to `allocator::construct` for the element constructions, or the range specified by [first,last) is not valid.
   - `push_back`
     - if no reallocation, strong guarantee
     - else if the type of the elements is either copyable or no-throw moveable, strong guarantee
     - else, basic guarantee
-    - UB if `allocator_traits::construct` is not supported with `val` as argument
+    - UB if `allocator::construct` is not supported with `val` as argument
   - `pop_back`
     - non-throwing, if empty, UB
   - `insert`
@@ -524,7 +560,15 @@ void clear(void) FT_NOEXCEPT_;
   - `clear`
     - non-throwing
 
-#### `get_allocator`
+#### Getter
+
+```c++
+// get_allocator : returns a copy of the allocator object.
+allocator_type get_allocator(void) const FT_NOEXCEPT_;
+```
+
+- **Exception Safety** :
+  - non-throwing
 
 ## Stack
 
@@ -613,11 +657,192 @@ bool operator>=(const stack<T, Container>& lhs,
                 const stack<T, Container>& rhs);
 ```
 
-## Map
+## Map & Set
 
-## Set
+### Class Templates
 
-## `enable_if` & `is_integral`
+```C++
+template <typename Key,
+          typename Value,
+          typename Compare = std::less<Key>,
+          typename Alloc = std::allocator<pair<const Key, Value> >
+          >
+class map;
+
+template <typename Key,
+          typename Compare = std::less<Key>,
+          typename Alloc = std::allocator<Key>
+          >
+class set;
+```
+
+### Features
+
+- `map` and `set` are associative containers that contain a set of either `pair<Key, Value>` objects (map) or `Key` objects (set) in a specific order defined by the `Compare` object.
+- The default comparison object is `std::less<Key>`.
+- Keys are unique.
+- The internal data structure is usually implemented by a form of balanced BST such as AVL Tree and Red-Black Tree.
+
+### Member Types
+
+```c++
+// Base_ is RbTree
+typedef Key key_type;
+typedef Value mapped_type;
+typedef pair<const key_type, mapped_type> value_type;
+
+class value_compare {
+  private:
+  Compare v_comp_;
+
+  public:
+  value_compare(Compare c) : v_comp_(c) {}
+  bool operator()(const value_type& x, const value_type& y) const {
+    return v_comp_(x.first, y.first);
+  }
+};
+
+typedef Compare key_compare;
+typedef typename Alloc::template rebind<value_type>::other allocator_type;
+typedef typename allocator_type::reference reference;
+typedef typename allocator_type::const_reference x;
+typedef typename allocator_type::pointer pointer;
+typedef typename allocator_type::const_pointer const_pointer;
+typedef typename Base_::iterator iterator;
+typedef typename Base_::const_iterator const_iterator;
+typedef typename Base_::const_reverse_iterator const_reverse_iterator;
+typedef typename Base_::reverse_iterator reverse_iterator;
+typedef typename iterator_traits<iterator>::difference_type difference_type;
+typedef size_t size_type;
+```
+
+```c++
+// Base_ is RbTree
+typedef Key key_type;
+typedef Key value_type;
+typedef Compare key_compare;
+typedef Compare value_compare;
+typedef Alloc allocator_type;
+typedef typename allocator_type::reference reference;
+typedef typename allocator_type::const_reference const_reference;
+typedef typename allocator_type::pointer pointer;
+typedef typename allocator_type::const_pointer const_pointer;
+typedef typename Base_::const_iterator iterator;
+typedef typename Base_::const_iterator const_iterator;
+typedef typename Base_::const_reverse_iterator const_reverse_iterator;
+typedef typename Base_::const_reverse_iterator reverse_iterator;
+typedef typename iterator_traits<iterator>::difference_type difference_type;
+typedef size_t size_type;
+```
+
+- `Key` of each node in a `set` is constant. Note that both `set::iterator` and `set::const_iterator` are aliased to the same type, `RbTree::const_iterator`.
+
+### Allocator Rebind
+
+- Unlike `vector`, data in `set` or `map` are stored inside node wrappers. Data need to be allocated in the 'node' unit, not by `Key` unit.
+- `allocator::rebind` is utilized to use the same `allocator` type passed as the third template parameter for different `value_type` (node).
+
+### Member Functions
+
+#### Constructors & Destructors
+
+- When both `map` & `set` are constructed, internal copies of `alloc` and `comp` are kept.
+
+```c++
+// Constructors
+// #1 default : empty container constructor (no elem)
+explicit map(const key_compare& comp = key_compare(),
+              const allocator_type& alloc = allocator_type());
+// #2 range : construct a container that will contain the same values in the range [first, last)
+template <class InputIterator>
+map(InputIterator first, InputIterator last,
+      const key_compare& comp = key_compare(),
+      const allocator_type& alloc = allocator_type());
+
+// #3 copy
+map(const map& x);
+
+// Destructor
+~map(void) FT_NOEXCEPT_;
+```
+
+```c++
+// Constructors
+// #1 default : empty container constructor (no elem)
+explicit set(const key_compare& comp = key_compare(),
+              const allocator_type& alloc = allocator_type());
+// #2 range : construct a container that will contain the same values in the range [first, last)
+template <class InputIterator>
+set(InputIterator first, InputIterator last,
+      const key_compare& comp = key_compare(),
+      const allocator_type& alloc = allocator_type());
+
+// #3 copy
+set(const set& x);
+
+// Destructor
+~set(void) FT_NOEXCEPT_;
+```
+
+- **Exception Safety** :
+  - strong guarantee for the constructors, non-throwing for the destructors
+  - **UB** if inappropriate arguments have been passed to `allocator::construct` for the element constructions, or the range specified by [first,last) is not valid.
+
+#### Iterators
+
+```c++
+// set's iterator member functions
+// For set only iterator version,
+// no separate const_iterator version
+// for iterator and const_iterator are aliased to the same type.
+iterator begin(void) const FT_NOEXCEPT_;
+iterator end(void) const FT_NOEXCEPT_;
+reverse_iterator rbegin(void) const FT_NOEXCEPT_;
+reverse_iterator rend(void) const FT_NOEXCEPT_;
+```
+
+```c++
+// map's iterator member functions
+iterator begin(void) FT_NOEXCEPT_;
+const_iterator begin(void) const FT_NOEXCEPT_;
+iterator end(void) FT_NOEXCEPT_;
+const_iterator end(void) const FT_NOEXCEPT_;
+reverse_iterator rbegin(void) FT_NOEXCEPT_;
+const_reverse_iterator rbegin(void) const FT_NOEXCEPT_;
+reverse_iterator rend(void) FT_NOEXCEPT_;
+const_reverse_iterator rend(void) const FT_NOEXCEPT_;
+```
+
+#### Capacity
+
+```c++
+// same prototypes and functionalities for both set and map
+// empty : returns true if the container is empty (size == 0)
+bool empty() const FT_NOEXCEPT_;
+
+// size : returns number of elements
+size_type size() const FT_NOEXCEPT_;
+
+// max_size : returns the max number of elements the container can hold (system dependent)
+size_type max_size() const FT_NOEXCEPT_;
+```
+
+#### Element Access (MAP ONLY)
+
+```c++
+// subscript operator overload :
+// if k == the key of an element,
+// returns a reference to its mapped value
+mapped_type& operator[](const key_type& key);
+```
+
+#### Modifiers
+
+#### Observers
+
+#### Operations
+
+#### Getter
 
 ## Algorithm & Utility
 
@@ -625,9 +850,7 @@ bool operator>=(const stack<T, Container>& lhs,
 
 ### `equal`
 
-### `pair`
-
-### `make_pair`
+### `pair` & `make_pair`
 
 ## TODO
 
@@ -658,7 +881,10 @@ bool operator>=(const stack<T, Container>& lhs,
 - [What is C++ metafunction and how to use it?
   by Sorush Khajepor](https://iamsorush.com/posts/cpp-meta-function/)
 - [Bjarne Stroustrup (2000). The C++ programming language. Boston: Addison-Wesley.](https://www.stroustrup.com/3rd_safe.pdf)
-
-- [Red-Black Tree study resource](https://edutechlearners.com/download/Introduction_to_algorithms-3rd%20Edition.pdf)
+- [H, T. (2009). Introduction to algorithms. Cambridge, Mass.: Mit Press.] (https://edutechlearners.com/download/Introduction_to_algorithms-3rd%20Edition.pdf)
 
 ‌
+
+```
+
+```

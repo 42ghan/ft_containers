@@ -74,7 +74,7 @@ class set {
         tree_(Base_(original.tree_)) {}
 
   // Destructor
-  ~set(void) {}
+  ~set(void) FT_NOEXCEPT_ {}
 
   // Assignment operator overload (Deep copy)
   set& operator=(const set& rhs) {
