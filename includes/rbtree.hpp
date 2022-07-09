@@ -573,8 +573,7 @@ class RbTree {
   // constructor
   // TODO : rotation for RB pattern
   pair<iterator, bool> Insert(const KeyType& key_value, NodePtr cursor = NULL) {
-    NodePtr trailing = FindInsertPosition_(key_value, cursor);
-    impl_.nil;
+    NodePtr trailing = impl_.nil;
     if (cursor == NULL) {
       cursor = root_;
       while (cursor != impl_.nil) {
