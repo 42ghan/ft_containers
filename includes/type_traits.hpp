@@ -115,20 +115,6 @@ struct is_const : public false_type {};
 
 template <typename T>
 struct is_const<const T> : public true_type {};
-
-// is_base_of
-// template <typename Base>
-// true_type test_base_and_derived_conversion(Base *);
-
-// template <typename>
-// false_type test_base_and_derived_conversion(void *);
-
-// template <typename Base, typename Derived>
-// struct is_base_of
-//     : public integral_constant<bool,
-//                                decltype(test_base_and_derived_conversion<
-//                                         typename remove_cv<Base>::type>(
-//                                    static_cast<Derived *>(NULL)))::value> {};
 }  // namespace ft
 
 #endif

@@ -62,101 +62,97 @@ class VectorIterator {
   }
 
   // increment & decrement
-  VectorIterator& operator++(void) FT_NOEXCEPT_ {
+  VectorIterator& operator++(void) {
     ++current_;
     return *this;
   }
 
-  VectorIterator operator++(int) FT_NOEXCEPT_ {
-    return VectorIterator(current_++);
-  }
+  VectorIterator operator++(int) { return VectorIterator(current_++); }
 
-  VectorIterator& operator--(void) FT_NOEXCEPT_ {
+  VectorIterator& operator--(void) {
     --current_;
     return *this;
   }
 
-  VectorIterator operator--(int) FT_NOEXCEPT_ {
-    return VectorIterator(current_--);
-  }
+  VectorIterator operator--(int) { return VectorIterator(current_--); }
 
   // subscript
-  reference operator[](difference_type n) FT_NOEXCEPT_ { return current_[n]; }
+  reference operator[](difference_type n) { return current_[n]; }
 
   // dereference & reference
-  reference operator*(void) const FT_NOEXCEPT_ { return *current_; }
+  reference operator*(void) const { return *current_; }
 
-  pointer operator->(void) const FT_NOEXCEPT_ { return current_; }
+  pointer operator->(void) const { return current_; }
 
   // add or subtract difference
-  VectorIterator& operator+=(difference_type n) FT_NOEXCEPT_ {
+  VectorIterator& operator+=(difference_type n) {
     current_ += n;
     return *this;
   }
 
-  VectorIterator& operator-=(difference_type n) FT_NOEXCEPT_ {
+  VectorIterator& operator-=(difference_type n) {
     current_ -= n;
     return *this;
   }
 
-  VectorIterator operator+(difference_type n) const FT_NOEXCEPT_ {
+  VectorIterator operator+(difference_type n) const {
     return VectorIterator(current_ + n);
   }
 
-  VectorIterator operator-(difference_type n) const FT_NOEXCEPT_ {
+  VectorIterator operator-(difference_type n) const {
     return VectorIterator(current_ - n);
   }
 
-  Iterator base(void) const FT_NOEXCEPT_ { return current_; }
+  Iterator base(void) const { return current_; }
 };
 
 template <typename IteratorL, typename IteratorR>
 inline bool operator==(const VectorIterator<IteratorL>& lhs,
-                       const VectorIterator<IteratorR>& rhs) FT_NOEXCEPT_ {
+                       const VectorIterator<IteratorR>& rhs) {
   return lhs.base() == rhs.base();
 }
 
 template <typename IteratorL, typename IteratorR>
 inline bool operator!=(const VectorIterator<IteratorL>& lhs,
-                       const VectorIterator<IteratorR>& rhs) FT_NOEXCEPT_ {
+                       const VectorIterator<IteratorR>& rhs) {
   return !(lhs.base() == rhs.base());
 }
 
 template <typename IteratorL, typename IteratorR>
 inline bool operator>(const VectorIterator<IteratorL>& lhs,
-                      const VectorIterator<IteratorR>& rhs) FT_NOEXCEPT_ {
+                      const VectorIterator<IteratorR>& rhs) {
   return lhs.base() > rhs.base();
 }
 
 template <typename IteratorL, typename IteratorR>
 inline bool operator<(const VectorIterator<IteratorL>& lhs,
-                      const VectorIterator<IteratorR>& rhs) FT_NOEXCEPT_ {
+                      const VectorIterator<IteratorR>& rhs) {
   return lhs.base() < rhs.base();
 }
 
 template <typename IteratorL, typename IteratorR>
 inline bool operator>=(const VectorIterator<IteratorL>& lhs,
-                       const VectorIterator<IteratorR>& rhs) FT_NOEXCEPT_ {
+                       const VectorIterator<IteratorR>& rhs) {
   return lhs.base() >= rhs.base();
 }
 
 template <typename IteratorL, typename IteratorR>
 inline bool operator<=(const VectorIterator<IteratorL>& lhs,
-                       const VectorIterator<IteratorR>& rhs) FT_NOEXCEPT_ {
+                       const VectorIterator<IteratorR>& rhs) {
   return lhs.base() <= rhs.base();
 }
 
 template <typename Iterator>
 inline VectorIterator<Iterator> operator+(
     typename VectorIterator<Iterator>::difference_type n,
-    const VectorIterator<Iterator>& itr) FT_NOEXCEPT_ {
+    const VectorIterator<Iterator>& itr) {
   return VectorIterator<Iterator>(itr.base() + n);
 }
 
 template <typename IteratorL, typename IteratorR>
 inline typename VectorIterator<IteratorL>::difference_type operator-(
     const VectorIterator<IteratorL>& lhs,
-    const VectorIterator<IteratorR>& rhs) FT_NOEXCEPT_ {
+    const VectorIterator<IteratorR>& rhs) {
   return lhs.base() - rhs.base();
 }
 
@@ -176,7 +172,7 @@ class VectorBase {
   pointer end_of_storage_;  // end of alloc
   allocator_type alloc_;    // allocator
 
-  void InitPointers_(const size_type n) {
+  void InitPointers_(const size_type n = 1) {
     begin_ = alloc_.allocate(n);
     end_ = begin_;
     end_of_storage_ = begin_ + n;
@@ -184,13 +180,13 @@ class VectorBase {
 
   explicit VectorBase(const allocator_type& alloc = allocator_type())
       : alloc_(alloc) {
-    InitPointers_(1);
+    InitPointers_();
   }
 
   explicit VectorBase(const size_type n,
                       const allocator_type& alloc = allocator_type())
       : alloc_(alloc) {
-    (n == 0) ? InitPointers_(1) : InitPointers_(n);
+    (n == 0) ? InitPointers_() : InitPointers_(n);
   }
 
   virtual ~VectorBase(void) {
@@ -203,6 +199,22 @@ class vector : protected VectorBase<T, Alloc> {
  private:
   typedef VectorBase<T, Alloc> Base_;
 
+ public:
+  // SECTION : member types
+  typedef T value_type;
+  typedef typename Base_::allocator_type allocator_type;
+  typedef typename Base_::size_type size_type;
+  typedef typename allocator_type::difference_type difference_type;
+  typedef typename Base_::pointer pointer;
+  typedef typename Base_::const_pointer const_pointer;
+  typedef value_type& reference;
+  typedef const value_type& const_reference;
+  typedef VectorIterator<const_pointer> const_iterator;
+  typedef VectorIterator<pointer> iterator;
+  typedef reverse_iterator<const_iterator> const_reverse_iterator;
+  typedef reverse_iterator<iterator> reverse_iterator;
+
+ private:
   template <typename InputIterator>
   void RangeInitialize_(
       InputIterator first,
@@ -301,20 +313,6 @@ class vector : protected VectorBase<T, Alloc> {
   }
 
  public:
-  // SECTION : member types
-  typedef T value_type;
-  typedef typename Base_::allocator_type allocator_type;
-  typedef typename Base_::size_type size_type;
-  typedef typename allocator_type::difference_type difference_type;
-  typedef typename Base_::pointer pointer;
-  typedef typename Base_::const_pointer const_pointer;
-  typedef value_type& reference;
-  typedef const value_type& const_reference;
-  typedef VectorIterator<const_pointer> const_iterator;
-  typedef VectorIterator<pointer> iterator;
-  typedef reverse_iterator<const_iterator> const_reverse_iterator;
-  typedef reverse_iterator<iterator> reverse_iterator;
-
   // SECTION : constructors & destructor
   // #1 default : empty container constructor (no elem)
   explicit vector(const allocator_type& alloc = allocator_type())

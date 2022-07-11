@@ -314,6 +314,6 @@ int main(void) {
   TestMap();
   TestSet();
 
-  system("leaks ft_containers");
+  // system("leaks ft_containers");
   return EXIT_SUCCESS;
 }

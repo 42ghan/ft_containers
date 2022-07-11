@@ -127,15 +127,15 @@ class RbTreeConstIterator {
   ~RbTreeConstIterator(void) {}
 
   // Copy Assignment operator overload
-  RbTreeConstIterator& operator=(const RbTreeConstIterator& rhs) FT_NOEXCEPT_ {
+  RbTreeConstIterator& operator=(const RbTreeConstIterator& rhs) {
     current_ = rhs.current_;
     return *this;
   }
 
   // dereference & reference
-  reference operator*(void) const FT_NOEXCEPT_ { return current_->key; }
+  reference operator*(void) const { return current_->key; }
 
-  pointer operator->(void) const FT_NOEXCEPT_ { return &(current_->key); }
+  pointer operator->(void) const { return &(current_->key); }
 
   // increment & decrement
   RbTreeConstIterator& operator++(void) {
@@ -205,15 +205,15 @@ class RbTreeIterator {
   }
 
   // Assignment operator overload
-  RbTreeIterator& operator=(const RbTreeIterator& rhs) FT_NOEXCEPT_ {
+  RbTreeIterator& operator=(const RbTreeIterator& rhs) {
     current_ = rhs.current_;
     return *this;
   }
 
   // dereference & reference
-  reference operator*(void) const FT_NOEXCEPT_ { return current_->key; }
+  reference operator*(void) const { return current_->key; }
 
-  pointer operator->(void) const FT_NOEXCEPT_ { return &(current_->key); }
+  pointer operator->(void) const { return &(current_->key); }
 
   // increment & decrement
   RbTreeIterator& operator++(void) {
@@ -238,7 +238,6 @@ class RbTreeIterator {
     return tmp;
   }
 
-  // TODO : check why use friend
   friend bool operator==(const RbTreeIterator<Value>& lhs,
                          const RbTreeIterator<Value>& rhs) {
     return lhs.base() == rhs.base();
@@ -571,7 +570,6 @@ class RbTree {
   // recoloring take place in AdjustAfterInsert_
   // NOTE : the new Node's color is initialized to red in the Node's
   // constructor
-  // TODO : rotation for RB pattern
   pair<iterator, bool> Insert(const KeyType& key_value, NodePtr cursor = NULL) {
     NodePtr trailing = impl_.nil;
     if (cursor == NULL) {
