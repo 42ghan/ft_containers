@@ -66,7 +66,7 @@ class map {
   // #1 empty : empty container with no element
   explicit map(const key_compare& comp = key_compare(),
                const allocator_type& alloc = allocator_type())
-      : comp_(comp), alloc_(alloc), tree_(Base_(value_compare(comp), alloc)) {}
+      : comp_(comp), alloc_(alloc), tree_(Base_(value_comp(), alloc)) {}
 
   // #2 range : construct with as many elements as the range [first, last)
   template <typename InputIterator>
@@ -75,7 +75,7 @@ class map {
                          InputIterator>::type last,
       const key_compare& comp = key_compare(),
       const allocator_type& alloc = allocator_type())
-      : comp_(comp), alloc_(alloc), tree_(Base_(value_compare(comp), alloc)) {
+      : comp_(comp), alloc_(alloc), tree_(Base_(value_comp(), alloc)) {
     for (; first != last; ++first) insert(*first);
   }
 
