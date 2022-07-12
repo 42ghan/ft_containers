@@ -28,11 +28,13 @@ class map {
   typedef pair<const key_type, mapped_type> value_type;
 
   class value_compare {
+    friend class map;
+
    private:
     Compare v_comp_;
+    value_compare(Compare c) : v_comp_(c) {}
 
    public:
-    value_compare(Compare c) : v_comp_(c) {}
     bool operator()(const value_type& x, const value_type& y) const {
       return v_comp_(x.first, y.first);
     }
