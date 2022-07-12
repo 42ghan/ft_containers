@@ -160,18 +160,32 @@ class RbTreeConstIterator {
     return tmp;
   }
 
-  friend bool operator==(const RbTreeConstIterator<Value>& lhs,
-                         const RbTreeConstIterator<Value>& rhs) {
-    return lhs.base() == rhs.base();
-  }
-
-  friend bool operator!=(const RbTreeConstIterator<Value>& lhs,
-                         const RbTreeConstIterator<Value>& rhs) {
-    return lhs.base() != rhs.base();
-  }
-
   NodePtr_ base(void) const { return current_; }
 };
+
+template <typename Value>
+bool operator==(const RbTreeConstIterator<Value>& lhs,
+                const RbTreeConstIterator<Value>& rhs) {
+  return lhs.base() == rhs.base();
+}
+
+template <typename Value>
+bool operator==(const RbTreeConstIterator<Value>& lhs,
+                const RbTreeIterator<Value>& rhs) {
+  return lhs.base() == rhs.base();
+}
+
+template <typename Value>
+bool operator!=(const RbTreeConstIterator<Value>& lhs,
+                const RbTreeConstIterator<Value>& rhs) {
+  return lhs.base() != rhs.base();
+}
+
+template <typename Value>
+bool operator!=(const RbTreeConstIterator<Value>& lhs,
+                const RbTreeIterator<Value>& rhs) {
+  return lhs.base() != rhs.base();
+}
 
 template <typename Value>
 class RbTreeIterator {
@@ -197,12 +211,6 @@ class RbTreeIterator {
 
   // Destructor
   ~RbTreeIterator(void) {}
-
-  // to const converter
-  template <typename U>
-  operator RbTreeConstIterator<U>(void) {
-    return (RbTreeConstIterator<U>(base()));
-  }
 
   // Assignment operator overload
   RbTreeIterator& operator=(const RbTreeIterator& rhs) {
@@ -238,18 +246,32 @@ class RbTreeIterator {
     return tmp;
   }
 
-  friend bool operator==(const RbTreeIterator<Value>& lhs,
-                         const RbTreeIterator<Value>& rhs) {
-    return lhs.base() == rhs.base();
-  }
-
-  friend bool operator!=(const RbTreeIterator<Value>& lhs,
-                         const RbTreeIterator<Value>& rhs) {
-    return lhs.base() != rhs.base();
-  }
-
   NodePtr_ base(void) const { return current_; }
 };
+
+template <typename Value>
+bool operator==(const RbTreeIterator<Value>& lhs,
+                const RbTreeIterator<Value>& rhs) {
+  return lhs.base() == rhs.base();
+}
+
+template <typename Value>
+bool operator==(const RbTreeIterator<Value>& lhs,
+                const RbTreeConstIterator<Value>& rhs) {
+  return lhs.base() == rhs.base();
+}
+
+template <typename Value>
+bool operator!=(const RbTreeIterator<Value>& lhs,
+                const RbTreeIterator<Value>& rhs) {
+  return lhs.base() != rhs.base();
+}
+
+template <typename Value>
+bool operator!=(const RbTreeIterator<Value>& lhs,
+                const RbTreeConstIterator<Value>& rhs) {
+  return lhs.base() != rhs.base();
+}
 
 // SECTION : Red-Black Tree
 template <typename Key, typename Compare = std::less<Key>,
@@ -749,7 +771,7 @@ class RbTree {
   size_type GetSize(void) const { return size_; }
 
   // swap
-  void swap(RbTree& x) {
+  void Swap(RbTree& x) {
     NodePtr root_temp = root_;
     RbTreeImpl_ impl_temp = impl_;
     size_type size_temp = size_;

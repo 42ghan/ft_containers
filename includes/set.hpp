@@ -143,7 +143,7 @@ class set {
     }
   }
 
-  void swap(set& x) { tree_.swap(x.tree_); }
+  void swap(set& x) { tree_.Swap(x.tree_); }
 
   void clear(void) FT_NOEXCEPT_ { tree_.ClearPostOrder(tree_.GetRoot()); }
 

@@ -125,7 +125,6 @@ class map {
 
   // Element Access
   mapped_type& operator[](const key_type& key) {
-    // NodePtr_ node = tree_.Search(ft::make_pair(key, mapped_type())).base();
     return (*(insert(ft::make_pair(key, mapped_type())).first)).second;
   }
 
@@ -171,7 +170,7 @@ class map {
     }
   }
 
-  void swap(map& x) { tree_.swap(x.tree_); }
+  void swap(map& x) { tree_.Swap(x.tree_); }
 
   void clear(void) FT_NOEXCEPT_ { tree_.ClearPostOrder(tree_.GetRoot()); }
 
