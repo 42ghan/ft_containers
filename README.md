@@ -1098,4 +1098,4 @@ bool equal(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, B
 - [What is C++ metafunction and how to use it?
   by Sorush Khajepor](https://iamsorush.com/posts/cpp-meta-function/)
 - [Bjarne Stroustrup (2000). The C++ programming language. Boston: Addison-Wesley.](https://www.stroustrup.com/3rd_safe.pdf)
-- [H, T. (2009). Introduction to algorithms. Cambridge, Mass.: Mit Press.] (https://edutechlearners.com/download/Introduction_to_algorithms-3rd%20Edition.pdf)
+- [H, T. (2009). Introduction to algorithms. Cambridge, Mass.: Mit Press.](https://edutechlearners.com/download/Introduction_to_algorithms-3rd%20Edition.pdf)
